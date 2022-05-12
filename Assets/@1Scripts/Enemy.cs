@@ -7,11 +7,13 @@ public enum EnemyState
 {
     None, //일반
     Stun, //스턴
-    Attack,
+    Attack, //공격준비
     Death,
     Guard, //경계
     Chase, //추적
     Scout, //정찰
+    Shoot, //사격중
+    Return, //귀환중
 }
 
 public class Enemy : MonoBehaviour, IDamagable
@@ -22,20 +24,37 @@ public class Enemy : MonoBehaviour, IDamagable
     public GameObject target;
     public GameObject curTarget;
     public Transform eyeTrans;
+    public Transform gunTrans;
+    public List<GameObject> location = new List<GameObject>();
+    public GameObject curLocation = null;
     //public Location curLocation;
     //public Location[] scoutLocation;
     private float viewAngle = 30.0f;
     private float viewDistance = 10.0f;
+    private float attackDistance = 5.0f;
     private float audioDistance = 10.0f;
     private bool isAim = false;
     private bool isAttack = false;
+    private bool isShoot = false;
     private bool isDead = false;
+    private Vector3 startPos;
+    private Quaternion startAngle;
+    public EnemyState startState;
+    private float lastFindTime = 0.0f;
+    private float lostDelayTime = 1.0f;
+    private float lastReturnTime = 0.0f;
+    private float returnDelayTime = 3.0f;
+    private float lastScoutTime = 0.0f;
+    private float scoutDelayTime = 5.0f;
     public float hp = 1.0f;
-    public GameObject test;
+    public GameObject blood;
+    public GameObject muzzle;
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        startPos = transform.position;
+        startAngle = transform.rotation;
     }
 
     // Update is called once per frame
@@ -43,15 +62,7 @@ public class Enemy : MonoBehaviour, IDamagable
     {
         if(Input.GetKeyDown(KeyCode.Q))
         {
-            if(isAim == true)
-            {
-                isAim = false;
-            }
-            else
-            {
-                isAim = true;
-            }
-            animator.SetBool("isAim", isAim);
+            isAim = !isAim;
         }
         if (Input.GetKeyDown(KeyCode.R))
         {
@@ -80,23 +91,41 @@ public class Enemy : MonoBehaviour, IDamagable
     {
         if (target == null)
             return;
-        RaycastHit hit;
+        if (enemyState == EnemyState.Death)
+            return;
 
-        //if (Physics.Linecast(transform.position, target.transform.position, out hit))
-        //{
-        //   Debug.Log(hit.collider.gameObject.name);
-        //}
+        if(Time.time >= lastFindTime + lostDelayTime)
+        {
+            curTarget = null;
+        }
+
+        RaycastHit hit;        
         Vector3 vec = eyeTrans.position + ((target.transform.position - eyeTrans.position).normalized * viewDistance);
-        //Vector3 vec = target.transform.position;
-        if (Physics.Linecast(eyeTrans.position, vec, out hit))//, LayerMask.GetMask("Unit", "Wall", "Ground")))
+
+        if (Physics.Linecast(eyeTrans.position, vec, out hit))//, LayerMask.GetMask("Player", "Unit", "Wall", "Ground")))
         {
             if(hit.collider != null)
             {
-                Debug.Log(hit.collider.gameObject.name);
-                curTarget = hit.collider.gameObject;
-                if (hit.collider.gameObject == target)
+                Transform objTrans = hit.transform;
+                if (objTrans.gameObject.layer == LayerMask.NameToLayer("Player"))
                 {
-                    Debug.Log("찾았다");
+                    curTarget = hit.collider.gameObject;
+                    Vector3 objPos = objTrans.position;
+                    objPos.y = 0;
+                    Vector3 pos = transform.position;
+                    pos.y = 0;
+                    Vector3 normal = (objPos - pos).normalized;
+                    float tempAngle = (Mathf.Atan2(normal.z, normal.x) * Mathf.Rad2Deg) - 90;
+                    tempAngle += transform.rotation.eulerAngles.y;
+                    Debug.Log(hit.transform.name);
+                    if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(30.0f * Mathf.Deg2Rad))
+                    {
+                        Debug.Log("찾았다");
+                        lastFindTime = Time.time;
+                        curTarget = objTrans.gameObject;
+                        if(enemyState == EnemyState.None || enemyState == EnemyState.Guard || enemyState == EnemyState.Scout || enemyState == EnemyState.Return)
+                            enemyState = EnemyState.Chase;
+                    }
                 }
             }
         }
@@ -108,6 +137,10 @@ public class Enemy : MonoBehaviour, IDamagable
         {
             animator.SetInteger("State", (int)EnemyState.None);
             //가만히 경계
+            if (isAim == true)
+            {
+                isAim = false;
+            }
         }
         else if(enemyState == EnemyState.Stun)
         {
@@ -116,23 +149,112 @@ public class Enemy : MonoBehaviour, IDamagable
         }
         else if(enemyState == EnemyState.Attack)
         {
-            animator.SetInteger("State", (int)EnemyState.None);
+            animator.SetInteger("State", (int)EnemyState.Attack);
             //목표 방향으로 공격(RayCast)
+            if (isAim == false)
+            {
+                isAim = true;
+            }
+            if (curTarget == null)
+            {
+                animator.SetBool("isAttack", false);
+                enemyState = EnemyState.Guard;
+            }
+            else
+            {
+                if (Vector3.Distance(transform.position, target.transform.position) < attackDistance + 0.5f)
+                {
+                    animator.SetBool("isAttack", true);
+                }
+                else
+                {
+                    animator.SetBool("isAttack", false);
+                    enemyState = EnemyState.Chase;
+                }
+            }
+        }
+        else if (enemyState == EnemyState.Return)
+        {
+            animator.SetInteger("State", (int)EnemyState.Return);
+            if(Vector3.Distance(transform.position, agent.destination) < 1.0f)
+            {
+                enemyState = EnemyState.None;
+                agent.SetDestination(transform.position);
+                transform.rotation = startAngle;
+            }
         }
         else if(enemyState == EnemyState.Guard)
         {
             animator.SetInteger("State", (int)EnemyState.None);
             //주변 경계
+            Debug.Log(lastReturnTime);
+            if(lastReturnTime < Time.time - returnDelayTime - 3.0f)
+            {
+                lastReturnTime = Time.time;
+            }
+            if(Time.time > lastReturnTime + returnDelayTime)
+            {
+                enemyState = EnemyState.Return;
+                agent.SetDestination(startPos);
+            }
         }
         else if (enemyState == EnemyState.Chase)
         {
             animator.SetInteger("State", (int)EnemyState.None);
             //목표의 위치로 공격 태세 이동
+            if (isAim == false)
+            {
+                isAim = true;
+            }
+            if(curTarget == null)
+            {
+                if(Vector3.Distance(transform.position, agent.destination) < 1.0f)
+                {
+                    agent.SetDestination(transform.position);
+                    enemyState = EnemyState.Guard;
+                }
+            }
+            else
+            {
+                if(Vector3.Distance(transform.position, target.transform.position) < attackDistance)
+                {
+                    agent.SetDestination(transform.position);
+                    enemyState = EnemyState.Attack;
+                }
+                else
+                {
+                    agent.SetDestination(curTarget.transform.position);
+                }
+            }
+            
         }
         else if (enemyState == EnemyState.Scout)
         {
             animator.SetInteger("State", (int)EnemyState.None);
             //순찰 위치를 반복 이동
+            if(Time.time > lastScoutTime + scoutDelayTime)
+            {
+                if (Vector3.Distance(transform.position, location[0].transform.position) < 1.0f)
+                {
+                    curLocation = location[0];
+                    location.Add(location[0]);
+                    location.RemoveAt(0);
+                    lastScoutTime = Time.time;
+                }
+                else
+                {
+                    agent.SetDestination(location[0].transform.position);
+                }
+            }
+        }
+        else if(enemyState == EnemyState.Shoot)
+        {
+            animator.SetInteger("State", (int)EnemyState.Shoot);
+            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0.0f, 0, 0.0f), 1.0f);
+            Vector3 vec = target.transform.position;
+            vec.y = transform.position.y;
+            transform.LookAt(vec);
+            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler((target.transform.position - transform.position).normalized), 0.1f);
         }
         else if (enemyState == EnemyState.Death)
         {
@@ -142,17 +264,58 @@ public class Enemy : MonoBehaviour, IDamagable
 
     private void AnimationSet()
     {
+        if (isShoot == true)
+            return;
         Vector3 vec = agent.velocity;
         vec.y = 0;
         animator.SetFloat("Speed", vec.magnitude);
+        animator.SetBool("isAim", isAim);
+    }
+    public void ShootStart()
+    {
+        if (enemyState == EnemyState.Death)
+            return;
+        Debug.Log("Start");
+        //transform.LookAt(target.transform);
+        agent.SetDestination(transform.position);
+        enemyState = EnemyState.Shoot;
+    }
+
+    public void ShootEnd()
+    {
+        if (enemyState == EnemyState.Death)
+            return;
+        Debug.Log("End");
+        enemyState = EnemyState.Attack;
     }
 
     public void Shoot()
     {
-
+        if (enemyState == EnemyState.Death)
+            return;
+        //GameObject muzzleObj = Instantiate(muzzle, gunTrans.position, gunTrans.rotation);
+        GameObject muzzleObj = Instantiate(muzzle, gunTrans);
+        muzzle.GetComponent<ParticleSystem>().Play();
+        Destroy(muzzleObj, 2.0f);
+        Debug.Log("공격");
+        RaycastHit hit;        
+        if (Physics.Linecast(eyeTrans.position, target.transform.position, out hit, LayerMask.GetMask("Player", "Unit", "Wall", "Ground")))
+        {
+            Debug.Log(hit.transform.name);
+            IDamagable d = hit.transform.GetComponent<IDamagable>();
+            if(d != null)
+            {
+                if(d?.Damaged(5) == true)
+                {
+                    GameObject obj = Instantiate(blood, hit.point, Quaternion.LookRotation(hit.point - gunTrans.position));
+                    Destroy(obj, 3.0f);
+                }
+                
+            }
+        }
     }
 
-    public void Damaged(float damage)
+    public bool Damaged(float damage)
     {
         this.hp += -damage;
         if(this.isDead == false)
@@ -161,11 +324,17 @@ public class Enemy : MonoBehaviour, IDamagable
             {
                 animator.SetTrigger("Death");
                 this.isDead = true;
+                isAim = false;
+                isAttack = false;
+                isShoot = false;
+                this.GetComponent<Collider>().enabled = false;
                 this.enemyState = EnemyState.Death;
+
             }
+            return true;
         }
-        
-        
+
+        return false;
     }
 }
 

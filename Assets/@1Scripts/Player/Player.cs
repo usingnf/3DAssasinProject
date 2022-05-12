@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IDamagable
 {
     private Transform trans;
     private Animator animator;
@@ -20,7 +20,7 @@ public class Player : MonoBehaviour
     public float jumpPower = 0.0f;
     public bool isAttack = false;
     public float hp = 1;
-    public bool isDeath = false;
+    public bool isDead = false;
     public Transform knifeTrans;
     public Transform attackPoint;
     public GameObject blood;
@@ -42,14 +42,14 @@ public class Player : MonoBehaviour
         Move();
         Jump();
         Attack();
-        Death();
+        //Death();
     }
 
     private void Death()
     {
-        if ((hp <= 0 && isDeath == false))
+        if ((hp <= 0 && isDead == false))
         {
-            isDeath = true;
+            isDead = true;
             animator.SetTrigger("Death");
         }
             
@@ -59,7 +59,7 @@ public class Player : MonoBehaviour
     {
         if (isAttack == true)
             return;
-        if (isDeath == true)
+        if (isDead == true)
             return;
 
         if(Input.GetMouseButtonDown(0))
@@ -73,7 +73,7 @@ public class Player : MonoBehaviour
     {
         if (isAttack == true)
             return;
-        if (isDeath == true)
+        if (isDead == true)
             return;
 
         if (Input.GetKeyDown(KeyCode.Space))
@@ -110,7 +110,7 @@ public class Player : MonoBehaviour
             characterController.Move(vec * Time.deltaTime);
             return;
         }
-        if (isDeath == true)
+        if (isDead == true)
             return;
         if (Input.GetKey(KeyCode.W))
         {
@@ -153,7 +153,7 @@ public class Player : MonoBehaviour
         
         if(Input.GetKey(KeyCode.LeftShift))
         {
-            vec *= 2;
+            vec *= 10;
         }
         jumpPower += gravity * Time.deltaTime;
         if (jumpPower < gravity)
@@ -182,7 +182,7 @@ public class Player : MonoBehaviour
 
     private void AnimationPlay()
     {
-        if (isDeath == true)
+        if (isDead == true)
             return;
 
         if (Input.GetKeyDown(KeyCode.C))
@@ -222,9 +222,14 @@ public class Player : MonoBehaviour
     public void KnifeAttackRange()
     {
         Collider[] hit;
-        hit = Physics.OverlapSphere(knifeTrans.position, 0.4f);
-        foreach(Collider c in hit)
+        hit = Physics.OverlapSphere(knifeTrans.position, 0.6f, LayerMask.GetMask("Unit"));
+        
+        foreach (Collider c in hit)
         {
+            if(c.isTrigger == true)
+            {
+                continue;
+            }
             Debug.Log(Quaternion.Euler((attackPoint.position - knifeTrans.position)).normalized);
             GameObject obj = Instantiate(blood, attackPoint.position, Quaternion.LookRotation(knifeTrans.position-attackPoint.position));
             Destroy(obj, 3.0f);
@@ -236,6 +241,24 @@ public class Player : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(knifeTrans.position, 0.4f);
+        Gizmos.DrawWireSphere(knifeTrans.position, 0.6f);
+    }
+
+    public bool Damaged(float damage)
+    {
+        this.hp += -damage;
+        if (this.isDead == false)
+        {
+            if (this.hp <= 0)
+            {
+                animator.SetTrigger("Death");
+                this.isDead = true;
+                
+            }
+            return true;
+        }
+        return false;
+
+        List<Transform> test = new List<Transform>();
     }
 }
