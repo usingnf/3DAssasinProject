@@ -4,21 +4,14 @@ using UnityEngine;
 
 public class SoundReceiver : MonoBehaviour
 {
-    public float soundThreshold;
-    // Start is called before the first frame update
-    void Start()
+    public float soundThreshold = 0.0f;
+    Receiveable receive = null;
+    private void Awake()
     {
-        
+        receive = GetComponent<Receiveable>();
     }
-
-    // Update is called once per frame
-    void Update()
+    public void Receive(float intensity, Vector3 position)
     {
-        
-    }
-
-    public virtual void Receive(float intensity, Vector3 postion)
-    {
-
+        receive?.ReceiveAction(position);
     }
 }

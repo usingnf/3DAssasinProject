@@ -8,7 +8,7 @@ public class Player : MonoBehaviour, IDamagable
     private Animator animator;
     public CharacterController characterController;
 
-    //0 == stand
+    //0 == stand, 1 == Sit
     public int stand = 0;
     public int walk = 0;
     public int angle = 0;
@@ -24,7 +24,8 @@ public class Player : MonoBehaviour, IDamagable
     public Transform knifeTrans;
     public Transform attackPoint;
     public GameObject blood;
-    
+    public float speed = 2.0f;
+
     void Start()
     {
         
@@ -38,28 +39,24 @@ public class Player : MonoBehaviour, IDamagable
     // Update is called once per frame
     void Update()
     {
+        if(Input.GetKeyDown(KeyCode.Q))
+        {
+            SoundManager.Instance.PlaySound(transform.position, "FootStep1", 1.0f, true, 1, 0.1f);
+        }
         AnimationPlay();
         Move();
         Jump();
         Attack();
-        //Death();
     }
 
-    private void Death()
-    {
-        if ((hp <= 0 && isDead == false))
-        {
-            isDead = true;
-            animator.SetTrigger("Death");
-        }
-            
-    }
 
     private void Attack()
     {
         if (isAttack == true)
             return;
         if (isDead == true)
+            return;
+        if (animator.GetBool("isGround") == false)
             return;
 
         if(Input.GetMouseButtonDown(0))
@@ -112,6 +109,7 @@ public class Player : MonoBehaviour, IDamagable
         }
         if (isDead == true)
             return;
+
         if (Input.GetKey(KeyCode.W))
         {
             vec += trans.forward;
@@ -149,11 +147,13 @@ public class Player : MonoBehaviour, IDamagable
         {
             angle = 2;
         }
-        
-        
+        vec.Normalize();
+        vec *= speed;
+        if (stand == 1)
+            vec *= 0.5f;
         if(Input.GetKey(KeyCode.LeftShift))
         {
-            vec *= 10;
+            vec *= 2;
         }
         jumpPower += gravity * Time.deltaTime;
         if (jumpPower < gravity)
@@ -223,19 +223,27 @@ public class Player : MonoBehaviour, IDamagable
     {
         Collider[] hit;
         hit = Physics.OverlapSphere(knifeTrans.position, 0.6f, LayerMask.GetMask("Unit"));
-        
+        bool attackSuccess = false;
         foreach (Collider c in hit)
         {
             if(c.isTrigger == true)
             {
                 continue;
             }
-            Debug.Log(Quaternion.Euler((attackPoint.position - knifeTrans.position)).normalized);
+            attackSuccess = true;
             GameObject obj = Instantiate(blood, attackPoint.position, Quaternion.LookRotation(knifeTrans.position-attackPoint.position));
             Destroy(obj, 3.0f);
             c.GetComponent<IDamagable>().Damaged(5);
-            //Debug.Log(c.gameObject.name);
         }
+        if (attackSuccess == true)
+        {
+            SoundManager.Instance.PlaySound(this.transform.position, "KillBlood", 1.0f, true, 1.0f, 0.1f);
+        }
+    }
+
+    public void KnifeSound()
+    {
+        SoundManager.Instance.PlaySound(transform.position, "KnifeAttack", 1.0f, true, 1.0f, 0.1f);
     }
 
     private void OnDrawGizmos()
@@ -258,7 +266,14 @@ public class Player : MonoBehaviour, IDamagable
             return true;
         }
         return false;
+    }
 
-        List<Transform> test = new List<Transform>();
+    public void FootStep(float intensity)
+    {
+        SoundManager.Instance.PlaySound(transform.position, "FootStep1", 1.0f, true, intensity, 0.1f);
+    }
+    public void FootStep2(float intensity)
+    {
+        SoundManager.Instance.PlaySound(transform.position, "FootStep1", 0.5f, true, intensity, 0.1f);
     }
 }
