@@ -64,16 +64,9 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     {
         if(Input.GetKeyDown(KeyCode.Q))
         {
-            isAim = !isAim;
+            agent.destination = target.transform.position;
         }
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            if (isAim == true)
-            {
-                isAttack = !isAttack;
-                animator.SetBool("isAttack", isAttack);
-            }
-        }
+        
         if (Input.GetKeyDown(KeyCode.E))
         {
             agent.destination = transform.position + new Vector3(0, 0, 100);
@@ -84,9 +77,9 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     }
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        Vector3 vec = eyeTrans.position + ((target.transform.position - eyeTrans.position).normalized * viewDistance);
-        Gizmos.DrawLine(eyeTrans.position, vec);
+        //Gizmos.color = Color.red;
+        //Vector3 vec = eyeTrans.position + ((target.transform.position - eyeTrans.position).normalized * viewDistance);
+        //Gizmos.DrawLine(eyeTrans.position, vec);
     }
 
     private void CheckEnemy()
@@ -212,9 +205,9 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
             animator.SetInteger("State", (int)EnemyState.None);
             agent.speed = 4.0f;
             //목표의 위치로 공격 태세 이동
-            if (isAim == false)
+            if (isAim == true)
             {
-                isAim = true;
+                isAim = false;
             }
             if(curTarget == null)
             {
@@ -266,7 +259,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         {
             //소리감지
             agent.speed = 2.5f;
-            if (Vector3.Distance(transform.position, agent.destination) < 1.0f)
+            if (Vector3.Distance(transform.position, agent.destination) < 0.5f)
             {
                 agent.SetDestination(transform.position);
                 enemyState = EnemyState.Guard;
@@ -284,6 +277,10 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         else if (enemyState == EnemyState.Death)
         {
             animator.SetInteger("State", (int)EnemyState.None);
+            if (isAim == true)
+            {
+                isAim = false;
+            }
             agent.speed = 0.01f;
             agent.SetDestination(this.transform.position);
         }
@@ -375,6 +372,11 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
             return;
         agent.SetDestination(position);
         enemyState = EnemyState.Noise;
+    }
+
+    public void FootStep(float intensity)
+    {
+        SoundManager.Instance.PlaySound(transform.position, "SwatFootStep", 1.0f, false);
     }
 }
 

@@ -9,7 +9,7 @@ public class BackView : MonoBehaviour
     public Transform target;
     public float followSpeed = 10f;
     public float sensitivity = 100f;
-    public float clampAngleUp = 60f;
+    public float clampAngleUp = 30f;
     public float clampAngleDown = 30f;
     private float rotX;
     private float rotY;
@@ -37,16 +37,6 @@ public class BackView : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (Cursor.lockState == CursorLockMode.None)
-                Cursor.lockState = CursorLockMode.Locked;
-            else
-                Cursor.lockState = CursorLockMode.None;
-        }
-
-        
-
         if (Input.mouseScrollDelta.y > 0)
         {
             minDistance += -Time.deltaTime * 10;

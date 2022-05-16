@@ -21,6 +21,8 @@ public class Player : MonoBehaviour, IDamagable
     public bool isAttack = false;
     public float hp = 1;
     public bool isDead = false;
+    public bool isGround = true;
+    public float fallingIntensity = 0.0f;
     public Transform knifeTrans;
     public Transform attackPoint;
     public GameObject blood;
@@ -31,9 +33,6 @@ public class Player : MonoBehaviour, IDamagable
         
         trans = transform;
         animator = GetComponent<Animator>();
-        //characterController = GetComponent<CharacterController>();
-        Cursor.lockState = CursorLockMode.Locked;
-        //Cursor.visible = false;
     }
 
     // Update is called once per frame
@@ -41,9 +40,11 @@ public class Player : MonoBehaviour, IDamagable
     {
         if(Input.GetKeyDown(KeyCode.Q))
         {
-            SoundManager.Instance.PlaySound(transform.position, "FootStep1", 1.0f, true, 1, 0.1f);
+            
+            //SoundManager.Instance.PlaySound(transform.position, "FootStep1", 1.0f, true, 1, 0.1f);
         }
         AnimationPlay();
+        Fall();
         Move();
         Jump();
         Attack();
@@ -95,9 +96,44 @@ public class Player : MonoBehaviour, IDamagable
         yield break;
     }
 
+    private void Fall()
+    {
+        if (characterController.isGrounded == false)
+        {
+            if(isGround == true)
+            {
+                fallingIntensity = 0.0f;
+                isGround = false;
+            }
+            else
+            {
+                fallingIntensity += Time.deltaTime;
+            }
+            
+        }
+        else
+        {
+            if(isGround == true)
+            {
+
+            }
+            else
+            {
+                if(fallingIntensity > 0.1f)
+                {
+                    SoundManager.Instance.PlaySound(transform.position, "Fall", 1.0f, true, 1.0f, 0.1f);
+                }
+                fallingIntensity = 0.0f;
+                isGround = true;
+            }
+            
+        }
+    }
+
     private void Move()
     {
         Vector3 vec = Vector3.zero;
+
         if (isAttack == true)
         {
             jumpPower += gravity * Time.deltaTime;
@@ -270,10 +306,18 @@ public class Player : MonoBehaviour, IDamagable
 
     public void FootStep(float intensity)
     {
-        SoundManager.Instance.PlaySound(transform.position, "FootStep1", 1.0f, true, intensity, 0.1f);
+        SoundManager.Instance.PlaySound(transform.position + new Vector3(0,0.1f, 0), "FootStep1", 1.0f, true, intensity, 0.1f);
     }
     public void FootStep2(float intensity)
     {
-        SoundManager.Instance.PlaySound(transform.position, "FootStep1", 0.5f, true, intensity, 0.1f);
+        SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 0.5f, true, intensity, 0.1f);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.tag == "Finish")
+        {
+            GameManager.Instance.Finish();
+        }
     }
 }
