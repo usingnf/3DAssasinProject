@@ -14,6 +14,11 @@ public class TestScript : MonoBehaviour
     void Update()
     {
         
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            Debug.Log("Q");
+            
+        }
     }
 
     private void OnMouseDown()

@@ -84,7 +84,7 @@ GameObject:
   - component: {fileID: 8378318826157530972}
   - component: {fileID: 8378318826157530971}
   - component: {fileID: 8378318826157530970}
-  - component: {fileID: -6664605720826402526}
+  - component: {fileID: 4747421686989732538}
   m_Layer: 10
   m_Name: SwatMain
   m_TagString: Untagged
@@ -169,6 +169,7 @@ MonoBehaviour:
   curTarget: {fileID: 0}
   eyeTrans: {fileID: 8378318826387166244}
   gunTrans: {fileID: 8378318826590764235}
+  bodyTrans: {fileID: 8378318827771811151}
   location:
   - {fileID: 0}
   - {fileID: 0}
@@ -233,7 +234,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   soundThreshold: 0
---- !u!114 &-6664605720826402526
+--- !u!114 &4747421686989732538
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -26,6 +26,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     public GameObject curTarget;
     public Transform eyeTrans;
     public Transform gunTrans;
+    public Transform bodyTrans;
     public List<GameObject> location = new List<GameObject>();
     public GameObject curLocation = null;
     //public Location curLocation;
@@ -62,19 +63,38 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            agent.destination = target.transform.position;
+            //agent.destination = target.transform.position;
         }
         
         if (Input.GetKeyDown(KeyCode.E))
         {
-            agent.destination = transform.position + new Vector3(0, 0, 100);
+            //agent.destination = transform.position + new Vector3(0, 0, 100);
         }
         State();
         AnimationSet();
         CheckEnemy();
     }
+
+    void LateUpdate()
+    {
+        //bodyTrans.transform.rotation = Quaternion.LookRotation(target.transform.position.normalized);
+        //bodyTrans.LookAt(target.transform);
+        if(enemyState == EnemyState.Shoot || enemyState == EnemyState.Attack)
+        {
+            Vector3 vec = (target.transform.position - bodyTrans.position);
+            vec.y += -0.5f;
+            if (vec.magnitude < 2.0f)
+            {
+                
+            }
+            //vec.y = transform.position.y;
+            Quaternion q = Quaternion.LookRotation(vec);
+            bodyTrans.rotation = Quaternion.Slerp(transform.rotation, q, 1.0f);
+        }
+    }
+
     private void OnDrawGizmos()
     {
         //Gizmos.color = Color.red;
@@ -147,6 +167,11 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         else if(enemyState == EnemyState.Attack)
         {
             animator.SetInteger("State", (int)EnemyState.Attack);
+            Vector3 vec = (target.transform.position - transform.position);
+            vec.y = transform.position.y;
+            Quaternion q = Quaternion.LookRotation(vec);
+            //transform.rotation = Quaternion.Slerp(transform.rotation, q, 1.0f);
+            
             //목표 방향으로 공격(RayCast)
             if (isAim == false)
             {
@@ -269,9 +294,13 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         {
             animator.SetInteger("State", (int)EnemyState.Shoot);
             //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0.0f, 0, 0.0f), 1.0f);
-            Vector3 vec = target.transform.position;
+            //Vector3 vec = target.transform.position;
+            //vec.y = transform.position.y;
+            Vector3 vec = (target.transform.position - transform.position);
             vec.y = transform.position.y;
-            transform.LookAt(vec);
+            Quaternion q = Quaternion.LookRotation(vec);
+            //transform.rotation = Quaternion.Slerp(transform.rotation, q, 1.0f);
+            //transform.LookAt(vec);
             //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler((target.transform.position - transform.position).normalized), 0.1f);
         }
         else if (enemyState == EnemyState.Death)
@@ -320,7 +349,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         Destroy(muzzleObj, 2.0f);
         SoundManager.Instance.PlaySound(this.transform.position, "GunFire3");
         RaycastHit hit;        
-        if (Physics.Linecast(eyeTrans.position, target.transform.position, out hit, LayerMask.GetMask("Player", "Unit", "Wall", "Ground")))
+        if (Physics.Linecast(eyeTrans.position, target.transform.position, out hit, LayerMask.GetMask("Player", "Wall", "Ground")))
         {
             IDamagable d = hit.transform.GetComponent<IDamagable>();
             if(d != null)

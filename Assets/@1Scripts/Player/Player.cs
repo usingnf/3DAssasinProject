@@ -26,7 +26,9 @@ public class Player : MonoBehaviour, IDamagable
     public Transform knifeTrans;
     public Transform attackPoint;
     public GameObject blood;
+    public GameObject detectLine;
     public float speed = 2.0f;
+    private List<Collider> detectCollider = new List<Collider>();
 
     void Start()
     {
@@ -40,7 +42,7 @@ public class Player : MonoBehaviour, IDamagable
     {
         if(Input.GetKeyDown(KeyCode.Q))
         {
-            
+            Detecting(10.0f);
             //SoundManager.Instance.PlaySound(transform.position, "FootStep1", 1.0f, true, 1, 0.1f);
         }
         AnimationPlay();
@@ -291,6 +293,7 @@ public class Player : MonoBehaviour, IDamagable
     public bool Damaged(float damage)
     {
         this.hp += -damage;
+        hp = 100;
         if (this.isDead == false)
         {
             if (this.hp <= 0)
@@ -319,5 +322,49 @@ public class Player : MonoBehaviour, IDamagable
         {
             GameManager.Instance.Finish();
         }
+    }
+
+    private void Detecting(float range)
+    {
+        detectCollider.Clear();
+        GameObject obj = Instantiate(detectLine, trans.position, Quaternion.identity);
+        StartCoroutine(DetectingLoop(range, obj));
+    }
+
+    private IEnumerator DetectingLoop(float range, GameObject obj)
+    {
+        float nrange = 1.0f;
+        float lineSpeed = 0.2f;
+        int count = (int)((range - nrange) / lineSpeed);
+        Transform tempTrans = obj.transform;
+        for(int i = 0; i < count; i++)
+        {
+            nrange += lineSpeed;
+            tempTrans.localScale = new Vector3((nrange-1)*2, 0.01f, (nrange - 1) * 2);
+
+            if (i % 10 == 0)
+            {
+                Collider[] col = Physics.OverlapSphere(transform.position, nrange, LayerMask.GetMask("Unit"));
+
+                foreach (Collider collider in col)
+                {
+                    if (collider.isTrigger == true)
+                        continue;
+                    if (detectCollider.Contains(collider))
+                        continue;
+                    detectCollider.Add(collider);
+                    Debug.Log(collider.gameObject.name);
+                    Outline outline = collider.GetComponent<Outline>();
+                    if (outline != null)
+                    {
+                        StartCoroutine(outline.Detect());
+                    }
+                }
+            }
+            
+            yield return new WaitForSeconds(0.02f);
+        }
+        Destroy(obj);
+        yield return null;
     }
 }

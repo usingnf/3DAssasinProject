@@ -715,6 +715,8 @@ MonoBehaviour:
   knifeTrans: {fileID: 510893041686098031}
   attackPoint: {fileID: 510893040930182868}
   blood: {fileID: 7403488021651589732, guid: 88c202515c7e0da49b563a46128f498a, type: 3}
+  detectLine: {fileID: 5476337224879849343, guid: 67a0d016782544e41924c2e1c95c688f,
+    type: 3}
   speed: 2
 --- !u!54 &852982782545462614
 Rigidbody:
