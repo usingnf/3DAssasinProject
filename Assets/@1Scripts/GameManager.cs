@@ -9,6 +9,7 @@ public enum GameState
     Play,
     Stop,
     Finish,
+    Failed,
 }
 
 
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviour
     public GameState gameState;
     public GameObject finishPanel;
     public GameObject pausePanel;
+    public GameObject failedPanel;
     public int stage = 0;
     
     void Awake()
@@ -33,13 +35,17 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if(gameState == GameState.Play)
+            
+            if (gameState == GameState.Play)
             {
                 Pause();
             }
             else
             {
-                Play();
+                if (gameState != GameState.Failed)
+                {
+                    Play();
+                }
             }
         }
     }
@@ -57,6 +63,7 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("Stage" + stage.ToString());
         gameState = GameState.Play;
         pausePanel.SetActive(false);
+        failedPanel.SetActive(false);
     }
 
     public void Next()
@@ -89,5 +96,12 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1.0f;
         gameState = GameState.Play;
         pausePanel.SetActive(false);
+    }
+
+    public void Failed()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        gameState = GameState.Failed;
+        failedPanel.SetActive(true);
     }
 }

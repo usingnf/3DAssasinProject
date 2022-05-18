@@ -79,19 +79,16 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
 
     void LateUpdate()
     {
-        //bodyTrans.transform.rotation = Quaternion.LookRotation(target.transform.position.normalized);
-        //bodyTrans.LookAt(target.transform);
         if(enemyState == EnemyState.Shoot || enemyState == EnemyState.Attack)
         {
             Vector3 vec = (target.transform.position - bodyTrans.position);
-            vec.y += -0.5f;
-            if (vec.magnitude < 2.0f)
-            {
-                
-            }
-            //vec.y = transform.position.y;
+            float tempy = vec.y;
+            vec.y = transform.position.y;
+            Quaternion q2 = Quaternion.LookRotation(vec);
+            vec.y = tempy - 0.5f;
             Quaternion q = Quaternion.LookRotation(vec);
-            bodyTrans.rotation = Quaternion.Slerp(transform.rotation, q, 1.0f);
+            transform.rotation = Quaternion.Slerp(transform.rotation, q2, 1.0f);
+            bodyTrans.rotation = Quaternion.Slerp(transform.rotation, q, 1.0f);            
         }
     }
 
@@ -130,8 +127,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
                     Vector3 normal = (objPos - pos).normalized;
                     float tempAngle = (Mathf.Atan2(normal.z, normal.x) * Mathf.Rad2Deg) - 90;
                     tempAngle += transform.rotation.eulerAngles.y;
-                    Debug.Log("탐색가능");
-                    Debug.Log(tempAngle);
+                    //Debug.Log("탐색가능");
+                    //Debug.Log(tempAngle);
                     if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(viewAngle * Mathf.Deg2Rad))
                     {
                         lastFindTime = Time.time;

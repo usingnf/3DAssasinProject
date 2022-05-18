@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Player : MonoBehaviour, IDamagable
 {
@@ -28,13 +29,23 @@ public class Player : MonoBehaviour, IDamagable
     public GameObject blood;
     public GameObject detectLine;
     public float speed = 2.0f;
+    public float stamina = 0.0f;
     private List<Collider> detectCollider = new List<Collider>();
+    public UnityAction<float> hpEvent;
+    public UnityAction<float> staminaEvent;
+    private IEnumerator detectCoroutine = null;
+    public Transform leftHand;
+    public GameObject throwKnifePrefab = null;
+    public GameObject throwKnife = null;
+    public Transform cameraTrans;
+    public Transform cameraPosTrans;
 
     void Start()
     {
-        
         trans = transform;
         animator = GetComponent<Animator>();
+        SetHp(10);
+        SetStamina(100);
     }
 
     // Update is called once per frame
@@ -50,6 +61,7 @@ public class Player : MonoBehaviour, IDamagable
         Move();
         Jump();
         Attack();
+        Throw();
     }
 
 
@@ -67,6 +79,53 @@ public class Player : MonoBehaviour, IDamagable
             isAttack = true;
             animator.SetBool("isAttack", true);
         }
+    }
+
+    private void Throw()
+    {
+        if (isAttack == true)
+            return;
+        if (isDead == true)
+            return;
+        if (animator.GetBool("isGround") == false)
+            return;
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            isAttack = true;
+            animator.SetBool("isThrow", true);
+        }
+    }
+
+    private void ThrowReady()
+    {
+        if(throwKnife != null)
+            Destroy(throwKnife);
+        throwKnife = Instantiate(throwKnifePrefab, leftHand.position, Quaternion.identity, leftHand);
+        throwKnife.transform.localPosition = new Vector3(-0.173f, 0.012f, 0.037f);
+        throwKnife.transform.localRotation = Quaternion.Euler(0, 45, 0f);
+    }
+
+    private void ThrowStart()
+    {
+        Vector3 vec2 = (((cameraPosTrans.position - cameraTrans.position).normalized) * 1.0f)+ (transform.forward * 1);
+        vec2.y += 0.15f;
+        Vector3 vec = cameraPosTrans.position + vec2;
+        throwKnife.transform.parent = null;
+        throwKnife.transform.LookAt(vec);
+        //throwKnife.transform.rotation *= Quaternion.Euler(0, -90, 0);
+        
+        throwKnife.GetComponent<ThrowKnife>().enabled = true;
+    }
+
+    private void ThrowFinish()
+    {
+        isAttack = false;
+        animator.SetBool("isThrow", false);
+        /*
+        if (throwKnife != null)
+            Destroy(throwKnife);
+        */
     }
 
     private void Jump()
@@ -193,11 +252,29 @@ public class Player : MonoBehaviour, IDamagable
         {
             vec *= 2;
         }
+        if(stamina < 10)
+        {
+            vec *= 0.2f;
+        }
         jumpPower += gravity * Time.deltaTime;
         if (jumpPower < gravity)
             jumpPower = gravity;
         vec.y = jumpPower;
         characterController.Move(vec * Time.deltaTime);
+        vec.y = 0;
+        if(vec.magnitude > 2.5f)
+        {
+            SetStamina(-vec.magnitude * Time.deltaTime * 2, true);
+        }
+        else if(vec.magnitude > 0.1f)
+        {
+            SetStamina(-1.0f * Time.deltaTime, true);
+        }
+        else
+        {
+            SetStamina(10.0f * Time.deltaTime, true);
+        }
+        
     }
 
     private IEnumerator StandUpReady()
@@ -292,19 +369,53 @@ public class Player : MonoBehaviour, IDamagable
 
     public bool Damaged(float damage)
     {
-        this.hp += -damage;
-        hp = 100;
+        SetHp(-damage, true);
         if (this.isDead == false)
         {
             if (this.hp <= 0)
             {
                 animator.SetTrigger("Death");
                 this.isDead = true;
-                
+                GameManager.Instance.Failed();
             }
             return true;
         }
         return false;
+    }
+
+    public void SetHp(float hp, bool isAdd = false)
+    {
+        if(isAdd == true)
+        {
+            this.hp += hp;
+        }
+        else
+        {
+            this.hp = hp;
+        }
+        hpEvent?.Invoke(this.hp);
+    }
+    public void SetStamina(float stamina, bool isAdd = false)
+    {
+        if (isAdd == true)
+        {
+            this.stamina += stamina;
+        }
+        else
+        {
+            this.stamina = stamina;
+        }
+        if(this.stamina > 100)
+        {
+            this.stamina = 100;
+            return;
+        }
+        else if(this.stamina < 0)
+        {
+            this.stamina = 0;
+            return;
+        }
+        staminaEvent?.Invoke(this.stamina);
     }
 
     public void FootStep(float intensity)
@@ -323,12 +434,23 @@ public class Player : MonoBehaviour, IDamagable
             GameManager.Instance.Finish();
         }
     }
-
+    
     private void Detecting(float range)
     {
+        if(this.stamina < 10.0f)
+        {
+            return;
+        }
+        if(detectCoroutine != null)
+        {
+            return;
+        }
+        SetStamina(-10.0f, true);
         detectCollider.Clear();
+        
         GameObject obj = Instantiate(detectLine, trans.position, Quaternion.identity);
-        StartCoroutine(DetectingLoop(range, obj));
+        detectCoroutine = DetectingLoop(range, obj);
+        StartCoroutine(detectCoroutine);
     }
 
     private IEnumerator DetectingLoop(float range, GameObject obj)
@@ -340,11 +462,13 @@ public class Player : MonoBehaviour, IDamagable
         for(int i = 0; i < count; i++)
         {
             nrange += lineSpeed;
-            tempTrans.localScale = new Vector3((nrange-1)*2, 0.01f, (nrange - 1) * 2);
+            tempTrans.localScale = new Vector3((nrange - 1) * 1, 0.01f, (nrange - 1) * 1);
 
             if (i % 10 == 0)
             {
-                Collider[] col = Physics.OverlapSphere(transform.position, nrange, LayerMask.GetMask("Unit"));
+                //Collider[] col = Physics.OverlapSphere(tempTrans.position, nrange, LayerMask.GetMask("Unit"));
+                Vector3 vec = tempTrans.position;
+                Collider[] col = Physics.OverlapCapsule(vec - new Vector3(0, nrange * 0.5f, 0), vec + new Vector3(0, nrange * 0.5f, 0), nrange, LayerMask.GetMask("Unit"));
 
                 foreach (Collider collider in col)
                 {
@@ -365,6 +489,7 @@ public class Player : MonoBehaviour, IDamagable
             yield return new WaitForSeconds(0.02f);
         }
         Destroy(obj);
+        detectCoroutine = null;
         yield return null;
     }
 }
