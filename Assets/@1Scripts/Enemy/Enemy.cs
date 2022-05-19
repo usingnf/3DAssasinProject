@@ -32,14 +32,15 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     //public Location curLocation;
     //public Location[] scoutLocation;
     private float viewAngle = 60.0f;
-    private float viewDistance = 10.0f;
-    private float attackDistance = 5.0f;
+    private float viewDistance = 15.0f;
+    private float attackDistance = 7.0f;
     private float audioDistance = 10.0f;
     private bool isAim = false;
     private bool isAttack = false;
     private bool isShoot = false;
     private bool isDead = false;
     private Vector3 startPos;
+    private Vector3 lastDetectPos;
     private Quaternion startAngle;
     public EnemyState startState;
     private float lastFindTime = 0.0f;
@@ -132,7 +133,9 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
                     if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(viewAngle * Mathf.Deg2Rad))
                     {
                         lastFindTime = Time.time;
-                        curTarget = objTrans.gameObject;
+                        //curTarget = objTrans.gameObject;
+                        curTarget = target;
+                        lastDetectPos = curTarget.transform.position;
                         if (enemyState == EnemyState.None || enemyState == EnemyState.Guard || 
                             enemyState == EnemyState.Scout || enemyState == EnemyState.Return || 
                             enemyState == EnemyState.Noise)
@@ -177,7 +180,16 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
             if (curTarget == null)
             {
                 animator.SetBool("isAttack", false);
-                enemyState = EnemyState.Guard;
+                if (Vector3.Distance(transform.position, lastDetectPos) > 1.0f)
+                {
+                    agent.SetDestination(lastDetectPos);
+                }
+                else
+                {
+                    agent.SetDestination(transform.position);
+                    
+                    enemyState = EnemyState.Guard;
+                }
             }
             else
             {
@@ -241,6 +253,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
             }
             else
             {
+                
+
                 if(Vector3.Distance(transform.position, target.transform.position) < attackDistance)
                 {
                     agent.SetDestination(transform.position);
@@ -376,6 +390,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
                 isShoot = false;
                 this.GetComponent<Collider>().enabled = false;
                 this.enemyState = EnemyState.Death;
+                SoundManager.Instance.PlaySound(transform.position, "EnemyDeath", 1.0f, true, 1.0f, 0.1f);
             }
             return true;
         }

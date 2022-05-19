@@ -8,10 +8,12 @@ public class PlayerUI : MonoBehaviour
     public Player player;
     public Slider hpSlider;
     public Slider staminaSlider;
+    public Image knifeImage;
     void Awake()
     {
         player.hpEvent += HPChanged;
         player.staminaEvent += StaminaChanged;
+        player.knifeCoolEvent += KnifeCoolChanged;
     }
 
     public void HPChanged(float hp)
@@ -22,10 +24,10 @@ public class PlayerUI : MonoBehaviour
     {
         staminaSlider.value = stamina;
     }
-
-    // Update is called once per frame
-    void Update()
+    
+    public void KnifeCoolChanged(float size)
     {
-        
+        //size): 0~1
+        knifeImage.rectTransform.localScale = new Vector3(1,size,1);
     }
 }

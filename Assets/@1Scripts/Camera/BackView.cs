@@ -142,7 +142,8 @@ public class BackView : MonoBehaviour
         {
             if(hit.collider != null)
             {
-                if(hit.collider.gameObject.layer == LayerMask.NameToLayer("Wall"))
+                if(hit.collider.gameObject.layer == LayerMask.NameToLayer("Wall")
+                    || hit.collider.gameObject.layer == LayerMask.NameToLayer("Ground"))
                 {
                     if (finalDistance > minDistance)
                     {

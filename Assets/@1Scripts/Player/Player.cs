@@ -33,6 +33,9 @@ public class Player : MonoBehaviour, IDamagable
     private List<Collider> detectCollider = new List<Collider>();
     public UnityAction<float> hpEvent;
     public UnityAction<float> staminaEvent;
+    public UnityAction<float> knifeCoolEvent;
+    private float maxKnifeCool = 5.0f;
+    private float knifeCool = 0.0f;
     private IEnumerator detectCoroutine = null;
     public Transform leftHand;
     public GameObject throwKnifePrefab = null;
@@ -81,6 +84,21 @@ public class Player : MonoBehaviour, IDamagable
         }
     }
 
+    private IEnumerator SetKnifeCool(float time)
+    {
+        knifeCool = time;
+        float space = 0.1f;
+        while(knifeCool > 0)
+        {
+            knifeCoolEvent.Invoke(knifeCool / maxKnifeCool);
+            knifeCool += -space;
+            if (knifeCool < 0)
+                knifeCool = 0;
+            yield return new WaitForSeconds(space);
+        }
+        knifeCoolEvent.Invoke(knifeCool / maxKnifeCool);
+    }
+
     private void Throw()
     {
         if (isAttack == true)
@@ -89,6 +107,9 @@ public class Player : MonoBehaviour, IDamagable
             return;
         if (animator.GetBool("isGround") == false)
             return;
+        if (knifeCool > 0)
+            return;
+        
 
         if (Input.GetMouseButtonDown(1))
         {
@@ -99,7 +120,8 @@ public class Player : MonoBehaviour, IDamagable
 
     private void ThrowReady()
     {
-        if(throwKnife != null)
+        StartCoroutine(SetKnifeCool(maxKnifeCool));
+        if (throwKnife != null)
             Destroy(throwKnife);
         throwKnife = Instantiate(throwKnifePrefab, leftHand.position, Quaternion.identity, leftHand);
         throwKnife.transform.localPosition = new Vector3(-0.173f, 0.012f, 0.037f);
@@ -108,24 +130,22 @@ public class Player : MonoBehaviour, IDamagable
 
     private void ThrowStart()
     {
-        Vector3 vec2 = (((cameraPosTrans.position - cameraTrans.position).normalized) * 1.0f)+ (transform.forward * 1);
-        vec2.y += 0.15f;
-        Vector3 vec = cameraPosTrans.position + vec2;
+        Vector3 vec = cameraTrans.position + ((leftHand.position - cameraTrans.position) * 2.0f);
+        float dis = Vector3.Distance(cameraTrans.position, leftHand.position);
+        vec += new Vector3(0, dis*0.2f, 0);
         throwKnife.transform.parent = null;
         throwKnife.transform.LookAt(vec);
-        //throwKnife.transform.rotation *= Quaternion.Euler(0, -90, 0);
-        
         throwKnife.GetComponent<ThrowKnife>().enabled = true;
+        Destroy(throwKnife, 7.0f);
+        SoundManager.Instance.PlaySound(leftHand.position, "KnifeThrow", 1.0f, true, 1.5f, 0.1f);
     }
 
     private void ThrowFinish()
     {
         isAttack = false;
         animator.SetBool("isThrow", false);
-        /*
-        if (throwKnife != null)
-            Destroy(throwKnife);
-        */
+        //if (throwKnife != null)
+            //Destroy(throwKnife);
     }
 
     private void Jump()
@@ -420,11 +440,19 @@ public class Player : MonoBehaviour, IDamagable
 
     public void FootStep(float intensity)
     {
+        //Run
         SoundManager.Instance.PlaySound(transform.position + new Vector3(0,0.1f, 0), "FootStep1", 1.0f, true, intensity, 0.1f);
     }
     public void FootStep2(float intensity)
     {
+        //Walk
         SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 0.5f, true, intensity, 0.1f);
+    }
+
+    public void FootStepSlow(float intensity)
+    {
+        //Crouch
+        SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 0.35f);
     }
 
     private void OnTriggerEnter(Collider other)

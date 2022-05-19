@@ -17,7 +17,7 @@ public class TestScript : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q))
         {
             Debug.Log("Q");
-            
+            SoundManager.Instance.PlaySound(transform.position, "SwatFootStep", 1.0f, false);
         }
     }
 
