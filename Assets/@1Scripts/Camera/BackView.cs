@@ -78,7 +78,6 @@ public class BackView : MonoBehaviour
 
     public IEnumerator FadeIn(float time)
     {
-
         GameObject image = Instantiate(Resources.Load<GameObject>("Image"), GameObject.Find("Canvas").transform);
         image.GetComponent<Image>().color = new Color(0, 0, 0, 1);
         for (int i = 0; i < 100; i++)
@@ -86,14 +85,11 @@ public class BackView : MonoBehaviour
             image.GetComponent<Image>().color += new Color(0, 0, 0, -0.01f);
             yield return new WaitForSeconds(time * 0.01f);
         }
-
         Destroy(image);
-
         yield break;
     }
     public IEnumerator FadeOut(float time)
     {
-
         GameObject image = Instantiate(Resources.Load<GameObject>("Image"), GameObject.Find("Canvas").transform);
         image.GetComponent<Image>().color = new Color(0, 0, 0, 0);
         for (int i = 0; i < 100; i++)
@@ -101,15 +97,12 @@ public class BackView : MonoBehaviour
             image.GetComponent<Image>().color += new Color(0, 0, 0, 0.01f);
             yield return new WaitForSeconds(time * 0.01f);
         }
-
         Destroy(image);
-
         yield break;
     }
 
     public IEnumerator FadeInOut(float time)
     {
-
         GameObject image = Instantiate(Resources.Load<GameObject>("Image"), GameObject.Find("Canvas").transform);
         image.GetComponent<Image>().color = new Color(0, 0, 0, 0);
         for (int i = 0; i < 50; i++)
@@ -122,9 +115,7 @@ public class BackView : MonoBehaviour
             image.GetComponent<Image>().color += new Color(0, 0, 0, -0.02f);
             yield return new WaitForSeconds(time * 0.02f);
         }
-
         Destroy(image);
-
         yield break;
     }
 
@@ -136,9 +127,7 @@ public class BackView : MonoBehaviour
 
     private void LateUpdate()
     {        
-        RaycastHit hit;
-
-        if (Physics.Linecast(cameraPos.position - (cameraPos.forward * maxDistance), cameraPos.position, out hit))
+        if (Physics.Linecast(cameraPos.position - (cameraPos.forward * maxDistance), cameraPos.position, out RaycastHit hit))
         {
             if(hit.collider != null)
             {
@@ -158,7 +147,6 @@ public class BackView : MonoBehaviour
                     {
                         finalDistance += followSpeed * Time.deltaTime;
                     }
-                        
                     else
                         finalDistance = maxDistance;
                 }
@@ -171,22 +159,5 @@ public class BackView : MonoBehaviour
             finalDistance = maxDistance;
         transform.position = cameraPos.position - (cameraPos.forward * finalDistance);
         transform.LookAt(cameraPos.position);
-        /*
-        transform.position = Vector3.MoveTowards(transform.position, cameraPos.position, followSpeed * Time.deltaTime);
-        finalDir = transform.TransformPoint(dir * maxDistance);
-
-        RaycastHit hit;
-
-        if (Physics.Linecast(trans.position, finalDir, out hit))
-        {
-            finalDistance = Mathf.Clamp(hit.distance, minDistance, maxDistance);
-        }
-        else
-        {
-            finalDistance = maxDistance;
-        }
-        
-        transform.localPosition = Vector3.Lerp(transform.localPosition, -dir * finalDistance, Time.deltaTime * smoothness);
-        */
     }
 }

@@ -12,7 +12,6 @@ public enum GameState
     Failed,
 }
 
-
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -27,12 +26,14 @@ public class GameManager : MonoBehaviour
         stage = PlayerPrefs.GetInt("Stage");
         Instance = this;
         Cursor.lockState = CursorLockMode.Locked;
-        gameState = GameState.Play;
         //Cursor.visible = false;
+        gameState = GameState.Play;
     }
 
     void Update()
     {
+
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             

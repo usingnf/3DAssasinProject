@@ -8,7 +8,7 @@ public enum EnemyState
     None, //일반
     Stun, //스턴
     Attack, //공격준비
-    Death,
+    Death, //사망
     Guard, //경계
     Chase, //추적
     Scout, //정찰
@@ -19,18 +19,7 @@ public enum EnemyState
 
 public class Enemy : SoundReceiver, IDamagable, Receiveable
 {
-    public NavMeshAgent agent;
-    public Animator animator;
-    public EnemyState enemyState = EnemyState.None;
-    public GameObject target;
-    public GameObject curTarget;
-    public Transform eyeTrans;
-    public Transform gunTrans;
-    public Transform bodyTrans;
-    public List<GameObject> location = new List<GameObject>();
-    public GameObject curLocation = null;
-    //public Location curLocation;
-    //public Location[] scoutLocation;
+    [Header("Status")]
     private float viewAngle = 60.0f;
     private float viewDistance = 15.0f;
     private float attackDistance = 7.0f;
@@ -43,6 +32,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     private Vector3 lastDetectPos;
     private Quaternion startAngle;
     public EnemyState startState;
+    public EnemyState enemyState = EnemyState.None;
     private float lastFindTime = 0.0f;
     private float lostDelayTime = 1.0f;
     private float lastReturnTime = 0.0f;
@@ -51,8 +41,25 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     private float scoutDelayTime = 5.0f;
     public float hp = 1.0f;
     private float speed = 3.5f;
+    private float damage = 50.0f;
+    private bool isDetected = false;
+    public List<GameObject> location = new List<GameObject>();
+    public GameObject curLocation = null;
+
+    [Header("Internal Object")]
+    public NavMeshAgent agent;
+    public Animator animator;
+    public Transform eyeTrans;
+    public Transform gunTrans;
+    public Transform bodyTrans;
+    public GameObject minimapPos;
+
+    [Header("Extern Object")]
+    public GameObject target;
+    public GameObject curTarget;
     public GameObject blood;
     public GameObject muzzle;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -64,22 +71,13 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            //agent.destination = target.transform.position;
-        }
-        
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            //agent.destination = transform.position + new Vector3(0, 0, 100);
-        }
         State();
         AnimationSet();
         CheckEnemy();
     }
-
     void LateUpdate()
     {
+        //Set character view angle
         if(enemyState == EnemyState.Shoot || enemyState == EnemyState.Attack)
         {
             Vector3 vec = (target.transform.position - bodyTrans.position);
@@ -93,86 +91,31 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         }
     }
 
-    private void OnDrawGizmos()
-    {
-        //Gizmos.color = Color.red;
-        //Vector3 vec = eyeTrans.position + ((target.transform.position - eyeTrans.position).normalized * viewDistance);
-        //Gizmos.DrawLine(eyeTrans.position, vec);
-    }
-
-    private void CheckEnemy()
-    {
-        if (target == null)
-            return;
-        if (enemyState == EnemyState.Death)
-            return;
-
-        if(Time.time >= lastFindTime + lostDelayTime)
-        {
-            curTarget = null;
-        }
-
-        RaycastHit hit;        
-        Vector3 vec = eyeTrans.position + ((target.transform.position - eyeTrans.position).normalized * viewDistance);
-        if (Physics.Linecast(eyeTrans.position, vec, out hit, LayerMask.GetMask("Player", "Wall", "Ground")))
-        {
-            if(hit.collider != null)
-            {
-                Transform objTrans = hit.transform;
-                if (objTrans.gameObject.layer == LayerMask.NameToLayer("Player"))
-                {
-                    Vector3 objPos = objTrans.position;
-                    objPos.y = 0;
-                    Vector3 pos = transform.position;
-                    pos.y = 0;
-                    Vector3 normal = (objPos - pos).normalized;
-                    float tempAngle = (Mathf.Atan2(normal.z, normal.x) * Mathf.Rad2Deg) - 90;
-                    tempAngle += transform.rotation.eulerAngles.y;
-                    //Debug.Log("탐색가능");
-                    //Debug.Log(tempAngle);
-                    if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(viewAngle * Mathf.Deg2Rad))
-                    {
-                        lastFindTime = Time.time;
-                        //curTarget = objTrans.gameObject;
-                        curTarget = target;
-                        lastDetectPos = curTarget.transform.position;
-                        if (enemyState == EnemyState.None || enemyState == EnemyState.Guard || 
-                            enemyState == EnemyState.Scout || enemyState == EnemyState.Return || 
-                            enemyState == EnemyState.Noise)
-                            enemyState = EnemyState.Chase;
-                    }
-                }
-            }
-        }
-    }
-
     private void State()
     {
-        if(enemyState == EnemyState.None)
+        animator.SetInteger("State", (int)enemyState);
+        if (enemyState == EnemyState.None)
         {
-            animator.SetInteger("State", (int)EnemyState.None);
-            agent.speed = 1.2f;
             //가만히 경계
+            agent.speed = 1.2f;
             if (isAim == true)
             {
                 isAim = false;
             }
         }
-        else if(enemyState == EnemyState.Stun)
+        else if (enemyState == EnemyState.Stun)
         {
-            animator.SetInteger("State", (int)EnemyState.None);
-            agent.speed = 0.1f;
             //행동 불능
+            agent.speed = 0.01f;
+            if (isAim == true)
+            {
+                isAim = false;
+            }
         }
-        else if(enemyState == EnemyState.Attack)
+        else if (enemyState == EnemyState.Attack)
         {
-            animator.SetInteger("State", (int)EnemyState.Attack);
-            Vector3 vec = (target.transform.position - transform.position);
-            vec.y = transform.position.y;
-            Quaternion q = Quaternion.LookRotation(vec);
-            //transform.rotation = Quaternion.Slerp(transform.rotation, q, 1.0f);
-            
             //목표 방향으로 공격(RayCast)
+            minimapPos.SetActive(true);
             if (isAim == false)
             {
                 isAim = true;
@@ -183,11 +126,11 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
                 if (Vector3.Distance(transform.position, lastDetectPos) > 1.0f)
                 {
                     agent.SetDestination(lastDetectPos);
+                    StartCoroutine(isPath(enemyState));
                 }
                 else
                 {
                     agent.SetDestination(transform.position);
-                    
                     enemyState = EnemyState.Guard;
                 }
             }
@@ -206,7 +149,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         }
         else if (enemyState == EnemyState.Return)
         {
-            animator.SetInteger("State", (int)EnemyState.Return);
+            //처음 위치로 귀환
             agent.speed = 1.2f;
             if (isAim == true)
             {
@@ -219,16 +162,17 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
                 transform.rotation = startAngle;
             }
         }
-        else if(enemyState == EnemyState.Guard)
+        else if (enemyState == EnemyState.Guard)
         {
-            agent.speed = 1.2f;
-            animator.SetInteger("State", (int)EnemyState.None);
             //주변 경계
-            if(lastReturnTime < Time.time - returnDelayTime - 3.0f)
+            if(isDetected == false)
+                minimapPos.SetActive(false);
+            agent.speed = 1.2f;
+            if (lastReturnTime < Time.time - returnDelayTime - 3.0f)
             {
                 lastReturnTime = Time.time;
             }
-            if(Time.time > lastReturnTime + returnDelayTime)
+            if (Time.time > lastReturnTime + returnDelayTime)
             {
                 enemyState = EnemyState.Return;
                 agent.SetDestination(startPos);
@@ -236,16 +180,15 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         }
         else if (enemyState == EnemyState.Chase)
         {
-            animator.SetInteger("State", (int)EnemyState.None);
-            agent.speed = 4.0f;
             //목표의 위치로 공격 태세 이동
+            agent.speed = 4.0f;
             if (isAim == true)
             {
                 isAim = false;
             }
-            if(curTarget == null)
+            if (curTarget == null)
             {
-                if(Vector3.Distance(transform.position, agent.destination) < 1.0f)
+                if (Vector3.Distance(transform.position, agent.destination) < 1.0f)
                 {
                     agent.SetDestination(transform.position);
                     enemyState = EnemyState.Guard;
@@ -253,9 +196,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
             }
             else
             {
-                
-
-                if(Vector3.Distance(transform.position, target.transform.position) < attackDistance)
+                if (Vector3.Distance(transform.position, target.transform.position) < attackDistance)
                 {
                     agent.SetDestination(transform.position);
                     enemyState = EnemyState.Attack;
@@ -265,12 +206,12 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
                     agent.SetDestination(curTarget.transform.position);
                 }
             }
-            
         }
         else if (enemyState == EnemyState.Scout)
         {
+            //지정 장소 순회
             agent.speed = 1.2f;
-            animator.SetInteger("State", (int)EnemyState.None);
+            
             if (isAim == true)
             {
                 isAim = false;
@@ -291,7 +232,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
                 }
             }
         }
-        else if(enemyState == EnemyState.Noise)
+        else if (enemyState == EnemyState.Noise)
         {
             //소리감지
             agent.speed = 2.5f;
@@ -301,22 +242,12 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
                 enemyState = EnemyState.Guard;
             }
         }
-        else if(enemyState == EnemyState.Shoot)
+        else if (enemyState == EnemyState.Shoot)
         {
-            animator.SetInteger("State", (int)EnemyState.Shoot);
-            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0.0f, 0, 0.0f), 1.0f);
-            //Vector3 vec = target.transform.position;
-            //vec.y = transform.position.y;
-            Vector3 vec = (target.transform.position - transform.position);
-            vec.y = transform.position.y;
-            Quaternion q = Quaternion.LookRotation(vec);
-            //transform.rotation = Quaternion.Slerp(transform.rotation, q, 1.0f);
-            //transform.LookAt(vec);
-            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler((target.transform.position - transform.position).normalized), 0.1f);
+            //Animation, LateUpdate에서 처리
         }
         else if (enemyState == EnemyState.Death)
         {
-            animator.SetInteger("State", (int)EnemyState.None);
             if (isAim == true)
             {
                 isAim = false;
@@ -325,16 +256,73 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
             agent.SetDestination(this.transform.position);
         }
     }
-
+    private IEnumerator isPath(EnemyState state)
+    {
+        EnemyState temp = state;
+        yield return new WaitForSeconds(0.1f);
+        if (temp == enemyState)
+        {
+            if (agent.hasPath == false)
+            {
+                enemyState = EnemyState.Return;
+            }
+        }
+        yield return null;
+    }
     private void AnimationSet()
     {
         if (isShoot == true)
             return;
-        Vector3 vec = agent.velocity;
-        vec.y = 0;
-        animator.SetFloat("Speed", vec.magnitude);
+        Vector3 speedVec = agent.velocity;
+        speedVec.y = 0;
+        animator.SetFloat("Speed", speedVec.magnitude);
         animator.SetBool("isAim", isAim);
     }
+    private void CheckEnemy()
+    {
+        if (target == null)
+            return;
+        if (enemyState == EnemyState.Death)
+            return;
+
+        if(Time.time >= lastFindTime + lostDelayTime)
+        {
+            curTarget = null;
+        }
+
+        RaycastHit hit;        
+        Vector3 rayVec = eyeTrans.position + ((target.transform.position - eyeTrans.position).normalized * viewDistance);
+        if (Physics.Linecast(eyeTrans.position, rayVec, out hit, LayerMask.GetMask("Player", "Wall", "Ground")))
+        {
+            if(hit.collider != null)
+            {
+                Transform objTrans = hit.transform;
+                if (objTrans.gameObject.layer == LayerMask.NameToLayer("Player"))
+                {
+                    Vector3 objPos = objTrans.position;
+                    objPos.y = 0;
+                    Vector3 pos = transform.position;
+                    pos.y = 0;
+                    Vector3 normal = (objPos - pos).normalized;
+                    float tempAngle = (Mathf.Atan2(normal.z, normal.x) * Mathf.Rad2Deg) - 90;
+                    tempAngle += transform.rotation.eulerAngles.y;
+                    if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(viewAngle * Mathf.Deg2Rad))
+                    {
+                        lastFindTime = Time.time;
+                        //curTarget = objTrans.gameObject;
+                        curTarget = target;
+                        lastDetectPos = curTarget.transform.position;
+                        if (enemyState == EnemyState.None || enemyState == EnemyState.Guard || 
+                            enemyState == EnemyState.Scout || enemyState == EnemyState.Return || 
+                            enemyState == EnemyState.Noise)
+                            enemyState = EnemyState.Chase;
+                    }
+                }
+            }
+        }
+    }
+    
+    //Used at animation event
     public void ShootStart()
     {
         if (enemyState == EnemyState.Death)
@@ -342,35 +330,33 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         agent.SetDestination(transform.position);
         enemyState = EnemyState.Shoot;
     }
-
+    //Used at animation event
     public void ShootEnd()
     {
         if (enemyState == EnemyState.Death)
             return;
         enemyState = EnemyState.Attack;
     }
-
+    //Used at animation event
     public void Shoot()
     {
         if (enemyState == EnemyState.Death)
             return;
-        //GameObject muzzleObj = Instantiate(muzzle, gunTrans.position, gunTrans.rotation);
+
         GameObject muzzleObj = Instantiate(muzzle, gunTrans);
         muzzle.GetComponent<ParticleSystem>().Play();
         Destroy(muzzleObj, 2.0f);
         SoundManager.Instance.PlaySound(this.transform.position, "GunFire3");
-        RaycastHit hit;        
-        if (Physics.Linecast(eyeTrans.position, target.transform.position, out hit, LayerMask.GetMask("Player", "Wall", "Ground")))
+        if (Physics.Linecast(eyeTrans.position, target.transform.position, out RaycastHit hit, LayerMask.GetMask("Player", "Wall", "Ground")))
         {
             IDamagable d = hit.transform.GetComponent<IDamagable>();
             if(d != null)
             {
-                if(d?.Damaged(5) == true)
+                if(d?.Damaged(damage) == true)
                 {
                     GameObject obj = Instantiate(blood, hit.point, Quaternion.LookRotation(hit.point - gunTrans.position));
                     Destroy(obj, 3.0f);
                 }
-                
             }
         }
     }
@@ -414,10 +400,73 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         agent.SetDestination(position);
         enemyState = EnemyState.Noise;
     }
-
+    //Used at animation event
     public void FootStep(float intensity)
     {
         SoundManager.Instance.PlaySound(transform.position, "SwatFootStep", 1.0f, false);
+    }
+
+    public void OnTriggerEnter(Collider other)
+    {
+        GameObject obj = other.gameObject;
+        if(obj.layer == LayerMask.NameToLayer("Knife"))
+        {
+            StartCoroutine(KnifeDetect(obj));
+        }
+    }
+
+    public IEnumerator KnifeDetect(GameObject obj)
+    {
+        while(obj != null)
+        {
+            if (target == null)
+                yield break;
+            if (enemyState == EnemyState.Death)
+                yield break;
+
+            RaycastHit hit;
+            Vector3 rayVec = eyeTrans.position + ((obj.transform.position - eyeTrans.position).normalized * viewDistance);
+            if (Physics.Linecast(eyeTrans.position, rayVec, out hit, LayerMask.GetMask("Knife", "Wall", "Ground")))
+            {
+                if (hit.collider != null)
+                {
+                    Transform objTrans = hit.transform;
+                    if (objTrans.gameObject.layer == LayerMask.NameToLayer("Knife"))
+                    {
+                        Vector3 objPos = objTrans.position;
+                        objPos.y = 0;
+                        Vector3 pos = transform.position;
+                        pos.y = 0;
+                        Vector3 normal = (objPos - pos).normalized;
+                        float tempAngle = (Mathf.Atan2(normal.z, normal.x) * Mathf.Rad2Deg) - 90;
+                        tempAngle += transform.rotation.eulerAngles.y;
+                        if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(225.0f * Mathf.Deg2Rad))
+                        {
+                            lastFindTime = Time.time;
+                            //curTarget = objTrans.gameObject;
+                            lastDetectPos = objTrans.position;
+                            agent.SetDestination(lastDetectPos);
+                            if (enemyState == EnemyState.None || enemyState == EnemyState.Guard ||
+                                enemyState == EnemyState.Scout || enemyState == EnemyState.Return ||
+                                enemyState == EnemyState.Noise)
+                                enemyState = EnemyState.Chase;
+                        }
+                    }
+                }
+            }
+            yield return new WaitForSeconds(0.04f);
+        }
+        yield return null;
+    }
+
+    public IEnumerator ViewMinimap(float time)
+    {
+        isDetected = true;
+        minimapPos.SetActive(true);
+        yield return new WaitForSeconds(time);
+        minimapPos.SetActive(false);
+        isDetected = false;
+        yield return null;
     }
 }
 

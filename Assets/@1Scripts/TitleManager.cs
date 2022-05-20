@@ -20,32 +20,24 @@ public class TitleManager : MonoBehaviour
         SESlider.value = SEVolume;
         float MusicVolume = PlayerPrefs.GetFloat("SEVolume");
         MusicSlider.value = MusicVolume;
+        float maxStage = PlayerPrefs.GetInt("MaxStage");
 
         for (int i = 1; i <= 40; i++)
         {
-            Button obj = Instantiate(stageButton, stageConent.transform);
-            obj.transform.GetChild(0).GetComponent<Text>().text = i.ToString();
+            Button button = Instantiate(stageButton, stageConent.transform);
+            button.transform.GetChild(0).GetComponent<Text>().text = i.ToString();
             int temp = i;
-            obj.onClick.AddListener(() =>
+            button.onClick.AddListener(() =>
             {
                 PlayerPrefs.SetInt("Stage", temp);
                 SceneManager.LoadScene("Stage" + temp.ToString());
             });
-            
-            //obj.onClick.AddListener(() => test(temp));
+            if(i > maxStage+1)
+            {
+                button.interactable = false;
+
+            }
         }
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void test(int i)
-    {
-        Debug.Log(i);
     }
 
     public void StartButton()

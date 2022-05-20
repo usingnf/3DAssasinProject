@@ -27,7 +27,7 @@ public class PlayerUI : MonoBehaviour
     
     public void KnifeCoolChanged(float size)
     {
-        //size): 0~1
+        //size: 0~1
         knifeImage.rectTransform.localScale = new Vector3(1,size,1);
     }
 }

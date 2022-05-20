@@ -12,7 +12,7 @@ public class SoundEmitter : MonoBehaviour
     public GameObject emitterObject;
     // 소리를 들을 수 있는 거리에 있는 오브젝트 목록
     private Dictionary<int, SoundReceiver> receiverDic;
-    // Start is called before the first frame update
+    
     void Awake()
     {
         receiverDic = new Dictionary<int, SoundReceiver>();
@@ -21,15 +21,8 @@ public class SoundEmitter : MonoBehaviour
         this.GetComponent<SphereCollider>().radius = soundIntensity;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public void EmitReady()
     {
-        // 소리 내기
         StartCoroutine(Emit());
     }
 
