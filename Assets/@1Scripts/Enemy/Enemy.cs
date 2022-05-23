@@ -310,12 +310,36 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
                     {
                         lastFindTime = Time.time;
                         //curTarget = objTrans.gameObject;
-                        curTarget = target;
-                        lastDetectPos = curTarget.transform.position;
-                        if (enemyState == EnemyState.None || enemyState == EnemyState.Guard || 
-                            enemyState == EnemyState.Scout || enemyState == EnemyState.Return || 
-                            enemyState == EnemyState.Noise)
-                            enemyState = EnemyState.Chase;
+                        if(enemyState == EnemyState.Noise || enemyState == EnemyState.Attack ||
+                            enemyState == EnemyState.Chase || enemyState == EnemyState.Shoot)
+                        {
+                            curTarget = target;
+                            lastDetectPos = curTarget.transform.position;
+                            if (enemyState == EnemyState.None || enemyState == EnemyState.Guard ||
+                                enemyState == EnemyState.Scout || enemyState == EnemyState.Return ||
+                                enemyState == EnemyState.Noise)
+                                enemyState = EnemyState.Chase;
+                        }
+                        else
+                        {
+                            Player player = hit.collider.GetComponent<Player>();
+                            if (player != null)
+                            {
+                                if (player.isInvisible == true)
+                                {
+
+                                }
+                                else
+                                {
+                                    curTarget = target;
+                                    lastDetectPos = curTarget.transform.position;
+                                    if (enemyState == EnemyState.None || enemyState == EnemyState.Guard ||
+                                        enemyState == EnemyState.Scout || enemyState == EnemyState.Return ||
+                                        enemyState == EnemyState.Noise)
+                                        enemyState = EnemyState.Chase;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -346,7 +370,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         GameObject muzzleObj = Instantiate(muzzle, gunTrans);
         muzzle.GetComponent<ParticleSystem>().Play();
         Destroy(muzzleObj, 2.0f);
-        SoundManager.Instance.PlaySound(this.transform.position, "GunFire3");
+        SoundManager.Instance.PlaySound(this.transform.position, "GunFire3", 1.0f, true, 13.0f, 0.1f);
         if (Physics.Linecast(eyeTrans.position, target.transform.position, out RaycastHit hit, LayerMask.GetMask("Player", "Wall", "Ground")))
         {
             IDamagable d = hit.transform.GetComponent<IDamagable>();

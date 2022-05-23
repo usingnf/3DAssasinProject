@@ -44,8 +44,9 @@ public class ThrowKnife : MonoBehaviour
             obj.GetComponent<IDamagable>().Damaged(5);
             Destroy(this.gameObject, 0.2f);
         }
-        else if (obj.layer == LayerMask.NameToLayer("Wall")
-            || obj.layer == LayerMask.NameToLayer("Ground"))
+        else if (obj.layer == LayerMask.NameToLayer("Wall") ||
+            obj.layer == LayerMask.NameToLayer("ClimbWall") ||
+            obj.layer == LayerMask.NameToLayer("Ground"))
         {
             isThrow = false;
             colTrans = obj.transform;

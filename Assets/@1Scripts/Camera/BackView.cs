@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class BackView : MonoBehaviour
 {
     public Transform target;
+    private Player player;
     public float followSpeed = 10f;
     public float sensitivity = 100f;
     public float clampAngleUp = 30f;
@@ -31,6 +32,7 @@ public class BackView : MonoBehaviour
         finalDistance = trans.localPosition.magnitude;
 
         Cursor.lockState = CursorLockMode.Locked;
+        player = target.GetComponent<Player>();
         //Cursor.visible = false;
     }
 
@@ -50,14 +52,17 @@ public class BackView : MonoBehaviour
         rotX += -(Input.GetAxis("Mouse Y")) * sensitivity * Time.deltaTime;
         
         rotX = Mathf.Clamp(rotX, -clampAngleUp, clampAngleDown);
-        if (trans.GetComponent<Player>().isAttack == false && trans.GetComponent<Player>().isDead == false)
+        if (player.isAttack == false && player.isDead == false && player.isClimb == false)
         {
             rotY += Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
         }
         Quaternion rot = Quaternion.Euler(rotX, rotY, 0);
         
         cameraPos.localRotation = Quaternion.Euler(rotX, 0, 0);
-        
+        if(player.isClimb == true)
+        {
+            rotY = target.localRotation.eulerAngles.y;
+        }
         trans.rotation = Quaternion.Euler(0, rotY, 0);
 
         /*
@@ -131,8 +136,9 @@ public class BackView : MonoBehaviour
         {
             if(hit.collider != null)
             {
-                if(hit.collider.gameObject.layer == LayerMask.NameToLayer("Wall")
-                    || hit.collider.gameObject.layer == LayerMask.NameToLayer("Ground"))
+                if(hit.collider.gameObject.layer == LayerMask.NameToLayer("Wall") ||
+                    hit.collider.gameObject.layer == LayerMask.NameToLayer("ClimbWall") ||
+                    hit.collider.gameObject.layer == LayerMask.NameToLayer("Ground"))
                 {
                     if (finalDistance > minDistance)
                     {

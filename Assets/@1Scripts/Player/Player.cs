@@ -23,17 +23,23 @@ public class Player : MonoBehaviour, IDamagable
     public float throwDamage = 5.0f;
     private readonly float maxKnifeCool = 5.0f;
     private float knifeCool = 0.0f;
+    public bool isInvisible = false;
+    private float invisibleStamina = 20.0f;
+    private float invisibleStaminaMinimum = 15.0f;
+    public bool isClimb = false;
 
     private IEnumerator jumpReady = null;
     private IEnumerator standUpReady = null;
     private IEnumerator sitDownReady = null;
     private IEnumerator detectCoroutine = null;
+    private IEnumerator invisibleCoroutine = null;
 
     [Header("Internal Object")]
     private Transform trans;
     private Animator animator;
     public CharacterController characterController;
     public Transform leftHand;
+    public Transform jumpChecker;
     public GameObject throwKnife = null;
     private List<Collider> detectCollider = new List<Collider>();
     public Renderer bodyRenderer;
@@ -50,6 +56,7 @@ public class Player : MonoBehaviour, IDamagable
     public GameObject throwKnifePrefab = null;
     public Transform cameraTrans;
     public Transform cameraPosTrans;
+    public Material cloakingMaterialOrigin;
     public Material cloakingMaterial;
     public Material originClothesMaterial;
     public Material originBodyMaterial;
@@ -62,6 +69,7 @@ public class Player : MonoBehaviour, IDamagable
 
     void Start()
     {
+        cloakingMaterial = Instantiate(cloakingMaterialOrigin);
         trans = transform;
         animator = GetComponent<Animator>();
         SetHp(100);
@@ -70,29 +78,154 @@ public class Player : MonoBehaviour, IDamagable
 
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Q))
+        AnimationPlay();
+        Fall();
+        Climb();
+        Move();
+        Invisible();
+        Detect();
+        Jump();
+        Attack();
+        Throw();
+    }
+
+    public void Climb()
+    {
+        if (isAttack == true)
+            return;
+        if (isDead == true)
+            return;
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            RaycastHit hit;
+            if (Physics.Linecast(trans.position, trans.position + trans.forward * 1.0f, out hit, LayerMask.GetMask("ClimbWall")))
+            {
+                isClimb = true;
+                StartCoroutine(ClimbFind(hit.collider.gameObject, hit.distance));
+            }
+        }
+    }
+
+    private IEnumerator ClimbFind(GameObject wall, float distance)
+    {
+        Vector3 upVec = new Vector3(0, 1, 0) * 5.0f;
+        characterController.enabled = false;
+        
+        this.trans.position += this.trans.forward * (distance - 0.15f);
+        this.trans.rotation = wall.transform.rotation * Quaternion.Euler(0,180, 0);
+        animator.SetTrigger("Climb");
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForSeconds(0.03f);
+        while (true)
+        {
+            RaycastHit hit;
+            Vector3 dir = (wall.transform.position - trans.position);
+            dir.y = 0;
+            dir.Normalize();
+            
+            if (Physics.Linecast(jumpChecker.position, jumpChecker.position + dir * 2.0f, out hit, LayerMask.GetMask("ClimbWall")) == false)
+            {
+                break;
+            }
+            trans.position += (upVec * Time.deltaTime);
+            yield return new WaitForEndOfFrame();
+        }
+        animator.SetBool("isClimb", true);
+        yield return null;
+    }
+
+    private void ClimbMove()
+    {
+
+    }
+
+    public void ClimbEnd()
+    {
+        this.transform.position += trans.forward * 1.0f + new Vector3(0,1.6f,0f);
+        characterController.enabled = true;
+        isClimb = false;
+        animator.SetBool("isClimb", false);
+    }
+
+    public void Invisible()
+    {
+        if(isInvisible == true)
+        {
+            SetStamina(-invisibleStamina * Time.deltaTime, true);
+            if (stamina <= invisibleStaminaMinimum)
+            {
+                if (invisibleCoroutine != null)
+                    StopCoroutine(invisibleCoroutine);
+                isInvisible = false;
+                invisibleCoroutine = InvisibleStart(false);
+                StartCoroutine(invisibleCoroutine);
+            }
+        }
+        
+        if(Input.GetKeyDown(KeyCode.E))
+        {
+            if (stamina > invisibleStaminaMinimum)
+            {
+                if (invisibleCoroutine != null)
+                    StopCoroutine(invisibleCoroutine);
+                if (isInvisible == true)
+                {
+                    isInvisible = false;
+                    invisibleCoroutine = InvisibleStart(false);
+                }
+                else
+                {
+                    invisibleCoroutine = InvisibleStart(true);
+                }
+                StartCoroutine(invisibleCoroutine);
+            }
+        }
+    }
+
+    private IEnumerator InvisibleStart(bool start)
+    {
+        if(start == true)
         {
             bodyRenderer.material = cloakingMaterial;
             clothesRenderer.material = cloakingMaterial;
             eyesRenderer.material = cloakingMaterial;
             eyeslashesRenderer.material = cloakingMaterial;
             knifeRenderer.material = cloakingMaterial;
-}
-        if (Input.GetKeyDown(KeyCode.E))
+            while(true)
+            {
+                float opacity = cloakingMaterial.GetFloat("_Opacity");
+                if(opacity <= 0.1f)
+                {
+                    break;
+                }
+                cloakingMaterial.SetFloat("_Opacity", opacity - (1.0f * Time.deltaTime));
+                yield return new WaitForSeconds(0.02f);
+            }
+            cloakingMaterial.SetFloat("_Opacity", 0.1f);
+            isInvisible = true;
+        }
+        else
         {
+            while (true)
+            {
+                float opacity = cloakingMaterial.GetFloat("_Opacity");
+                if (opacity >= 1.0f)
+                {
+                    break;
+                }
+                cloakingMaterial.SetFloat("_Opacity", opacity + (1.0f * Time.deltaTime));
+                yield return new WaitForSeconds(0.02f);
+            }
+            cloakingMaterial.SetFloat("_Opacity", 1.0f);
             bodyRenderer.material = originBodyMaterial;
             clothesRenderer.material = originClothesMaterial;
             eyesRenderer.material = originBodyMaterial;
             eyeslashesRenderer.material = originBodyMaterial;
-            
+            knifeRenderer.material = originKnifeMaterial;
         }
-        AnimationPlay();
-        Fall();
-        Move();
-        Detect();
-        Jump();
-        Attack();
-        Throw();
+
+        yield return null;
     }
 
     private void AnimationPlay()
@@ -186,6 +319,8 @@ public class Player : MonoBehaviour, IDamagable
             characterController.Move(moveVec * Time.deltaTime);
             return;
         }
+        if (isClimb == true)
+            return;
         if (isDead == true)
             return;
 
@@ -341,6 +476,8 @@ public class Player : MonoBehaviour, IDamagable
     {
         if (isAttack == true)
             return;
+        if (isClimb == true)
+            return;
         if (isDead == true)
             return;
 
@@ -365,6 +502,8 @@ public class Player : MonoBehaviour, IDamagable
     private void Attack()
     {
         if (isAttack == true)
+            return;
+        if (isClimb == true)
             return;
         if (isDead == true)
             return;
@@ -421,6 +560,8 @@ public class Player : MonoBehaviour, IDamagable
     private void Throw()
     {
         if (isAttack == true)
+            return;
+        if (isClimb == true)
             return;
         if (isDead == true)
             return;

@@ -17,7 +17,7 @@
             GrabPass{}
 
             CGPROGRAM
-            #pragma surface surf CloakingLight noambient novertextlights noforwardadd
+            #pragma surface surf CloakingLight noambient novertexlights noforwardadd
             #pragma target 3.0
 
             sampler2D _GrabTexture;
