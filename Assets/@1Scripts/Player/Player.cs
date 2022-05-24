@@ -27,6 +27,8 @@ public class Player : MonoBehaviour, IDamagable
     private float invisibleStamina = 20.0f;
     private float invisibleStaminaMinimum = 15.0f;
     public bool isClimb = false;
+    public bool isDoor = false;
+    private float doorX = 0;
 
     private IEnumerator jumpReady = null;
     private IEnumerator standUpReady = null;
@@ -36,6 +38,7 @@ public class Player : MonoBehaviour, IDamagable
 
     [Header("Internal Object")]
     private Transform trans;
+    public Transform eyeTrans;
     private Animator animator;
     public CharacterController characterController;
     public Transform leftHand;
@@ -56,6 +59,7 @@ public class Player : MonoBehaviour, IDamagable
     public GameObject throwKnifePrefab = null;
     public Transform cameraTrans;
     public Transform cameraPosTrans;
+    private Transform doorTrans = null;
     public Material cloakingMaterialOrigin;
     public Material cloakingMaterial;
     public Material originClothesMaterial;
@@ -85,6 +89,7 @@ public class Player : MonoBehaviour, IDamagable
         Invisible();
         Detect();
         Jump();
+        DoorCheck();
         Attack();
         Throw();
     }
@@ -99,11 +104,75 @@ public class Player : MonoBehaviour, IDamagable
         if (Input.GetKeyDown(KeyCode.Space))
         {
             RaycastHit hit;
-            if (Physics.Linecast(trans.position, trans.position + trans.forward * 1.0f, out hit, LayerMask.GetMask("ClimbWall")))
+            if (Physics.Linecast(eyeTrans.position, eyeTrans.position + trans.forward * 1.0f, out hit, LayerMask.GetMask("ClimbWall")))
             {
                 isClimb = true;
                 StartCoroutine(ClimbFind(hit.collider.gameObject, hit.distance));
             }
+        }
+    }
+    
+    public void DoorCheck()
+    {
+        if (Input.GetMouseButton(1))
+        {
+            if(doorTrans == null)
+            {
+                RaycastHit hit;
+                if (Physics.Linecast(trans.position, trans.position + trans.forward * 2.0f, out hit, LayerMask.GetMask("Door")))
+                {
+                    doorTrans = hit.transform;
+                    SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "DoorOpen", 1.0f, true, 0.7f, 0.1f);
+                }
+            }
+            if(doorTrans == null)
+            {
+                isDoor = false;
+                return;
+            }
+            if(Vector3.Distance(doorTrans.position, trans.position) > 2.0f)
+            {
+                doorTrans = null;
+            }
+            else
+            {
+                if (doorTrans != null)
+                {
+                    isDoor = true;
+                    IOpen door = doorTrans.GetComponent<IOpen>();
+                    if (door != null)
+                    {
+                        if (Mathf.Cos((trans.rotation.eulerAngles.y - door.GetAngle()) * Mathf.Deg2Rad) >= 0)
+                        {
+                            if (Input.GetAxis("Mouse X") > 0)
+                            {
+                                door.Open(100);
+                            }
+                            else if (Input.GetAxis("Mouse X") < 0)
+                            {
+                                door.Close(100);
+                            }
+                        }
+                        else
+                        {
+                            if (Input.GetAxis("Mouse X") > 0)
+                            {
+                                door.Close(100);
+                            }
+                            else if (Input.GetAxis("Mouse X") < 0)
+                            {
+                                door.Open(100);
+                            }
+                        }
+                    }
+                }
+            }
+            
+        }
+        else
+        {
+            doorTrans = null;
+            isDoor = false;
         }
     }
 
@@ -133,11 +202,6 @@ public class Player : MonoBehaviour, IDamagable
         }
         animator.SetBool("isClimb", true);
         yield return null;
-    }
-
-    private void ClimbMove()
-    {
-
     }
 
     public void ClimbEnd()
@@ -564,6 +628,8 @@ public class Player : MonoBehaviour, IDamagable
         if (isClimb == true)
             return;
         if (isDead == true)
+            return;
+        if (isDoor == true)
             return;
         if (animator.GetBool("isGround") == false)
             return;

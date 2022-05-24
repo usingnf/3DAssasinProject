@@ -45,7 +45,7 @@ public class SoundEmitter : MonoBehaviour
             RaycastHit[] hits = Physics.RaycastAll(ray, rayDistance, LayerMask.GetMask("Wall"));
             foreach (RaycastHit hit in hits)
             {
-                intensity *= 0.5f;
+                intensity *= 0.8f;
             }
             // 거리 소리 감소 계산
             srObj = sr.gameObject;

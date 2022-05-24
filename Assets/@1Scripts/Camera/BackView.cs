@@ -52,7 +52,7 @@ public class BackView : MonoBehaviour
         rotX += -(Input.GetAxis("Mouse Y")) * sensitivity * Time.deltaTime;
         
         rotX = Mathf.Clamp(rotX, -clampAngleUp, clampAngleDown);
-        if (player.isAttack == false && player.isDead == false && player.isClimb == false)
+        if (player.isAttack == false && player.isDead == false && player.isClimb == false && player.isDoor == false)
         {
             rotY += Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
         }
@@ -138,6 +138,7 @@ public class BackView : MonoBehaviour
             {
                 if(hit.collider.gameObject.layer == LayerMask.NameToLayer("Wall") ||
                     hit.collider.gameObject.layer == LayerMask.NameToLayer("ClimbWall") ||
+                    hit.collider.gameObject.layer == LayerMask.NameToLayer("Door") ||
                     hit.collider.gameObject.layer == LayerMask.NameToLayer("Ground"))
                 {
                     if (finalDistance > minDistance)

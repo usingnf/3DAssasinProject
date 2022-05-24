@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -23,7 +24,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     private float viewAngle = 60.0f;
     private float viewDistance = 15.0f;
     private float attackDistance = 7.0f;
-    private float audioDistance = 10.0f;
+    //private float audioDistance = 10.0f;
     private bool isAim = false;
     private bool isAttack = false;
     private bool isShoot = false;
@@ -40,7 +41,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     private float lastScoutTime = 0.0f;
     private float scoutDelayTime = 5.0f;
     public float hp = 1.0f;
-    private float speed = 3.5f;
+    private float speed = 1.2f;
     private float damage = 50.0f;
     private bool isDetected = false;
     public List<GameObject> location = new List<GameObject>();
@@ -66,7 +67,16 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         animator = GetComponent<Animator>();
         startPos = transform.position;
         startAngle = transform.rotation;
+        
     }
+
+    private void OnDrawGizmos()
+    {
+        //Handles.color = new Color(1,0,0,0.5f);
+        //Handles.DrawSolidArc(transform.position, transform.up, transform.forward, 60.0f / 2, 5.0f);
+        //Handles.DrawSolidArc(transform.position, transform.up, transform.forward, -60.0f / 2, 5.0f);
+    }
+
 
     // Update is called once per frame
     void Update()
@@ -97,7 +107,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         if (enemyState == EnemyState.None)
         {
             //가만히 경계
-            agent.speed = 1.2f;
+            agent.speed = speed;
             if (isAim == true)
             {
                 isAim = false;
@@ -106,7 +116,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         else if (enemyState == EnemyState.Stun)
         {
             //행동 불능
-            agent.speed = 0.01f;
+            agent.speed = speed;
             if (isAim == true)
             {
                 isAim = false;
@@ -150,7 +160,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         else if (enemyState == EnemyState.Return)
         {
             //처음 위치로 귀환
-            agent.speed = 1.2f;
+            agent.speed = speed;
             if (isAim == true)
             {
                 isAim = false;
@@ -167,7 +177,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
             //주변 경계
             if(isDetected == false)
                 minimapPos.SetActive(false);
-            agent.speed = 1.2f;
+            agent.speed = speed;
             if (lastReturnTime < Time.time - returnDelayTime - 3.0f)
             {
                 lastReturnTime = Time.time;
@@ -181,7 +191,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         else if (enemyState == EnemyState.Chase)
         {
             //목표의 위치로 공격 태세 이동
-            agent.speed = 4.0f;
+            agent.speed = speed * 3 + 0.4f;
             if (isAim == true)
             {
                 isAim = false;
@@ -210,7 +220,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         else if (enemyState == EnemyState.Scout)
         {
             //지정 장소 순회
-            agent.speed = 1.2f;
+            agent.speed = speed;
             
             if (isAim == true)
             {
@@ -235,7 +245,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         else if (enemyState == EnemyState.Noise)
         {
             //소리감지
-            agent.speed = 2.5f;
+            agent.speed = speed * 2;
             if (Vector3.Distance(transform.position, agent.destination) < 0.5f)
             {
                 agent.SetDestination(transform.position);
@@ -292,7 +302,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
 
         RaycastHit hit;        
         Vector3 rayVec = eyeTrans.position + ((target.transform.position - eyeTrans.position).normalized * viewDistance);
-        if (Physics.Linecast(eyeTrans.position, rayVec, out hit, LayerMask.GetMask("Player", "Wall", "Ground")))
+        if (Physics.Linecast(eyeTrans.position, rayVec, out hit, LayerMask.GetMask("Player", "Wall", "Ground", "Door", "ClimbWall")))
         {
             if(hit.collider != null)
             {
@@ -450,7 +460,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
 
             RaycastHit hit;
             Vector3 rayVec = eyeTrans.position + ((obj.transform.position - eyeTrans.position).normalized * viewDistance);
-            if (Physics.Linecast(eyeTrans.position, rayVec, out hit, LayerMask.GetMask("Knife", "Wall", "Ground")))
+            if (Physics.Linecast(eyeTrans.position, rayVec, out hit, LayerMask.GetMask("Knife", "Wall", "Ground", "Door", "ClimbWall")))
             {
                 if (hit.collider != null)
                 {

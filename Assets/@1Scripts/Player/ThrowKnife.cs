@@ -46,6 +46,7 @@ public class ThrowKnife : MonoBehaviour
         }
         else if (obj.layer == LayerMask.NameToLayer("Wall") ||
             obj.layer == LayerMask.NameToLayer("ClimbWall") ||
+            obj.layer == LayerMask.NameToLayer("Door") ||
             obj.layer == LayerMask.NameToLayer("Ground"))
         {
             isThrow = false;
