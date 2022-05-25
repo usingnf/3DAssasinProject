@@ -18,7 +18,7 @@ public enum EnemyState
     Noise, //소리감지
 }
 
-public class Enemy : SoundReceiver, IDamagable, Receiveable
+public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
 {
     [Header("Status")]
     private float viewAngle = 60.0f;
@@ -54,6 +54,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
     public Transform gunTrans;
     public Transform bodyTrans;
     public GameObject minimapPos;
+    public SearchingRegion searchingRegion;
 
     [Header("Extern Object")]
     public GameObject target;
@@ -84,6 +85,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         State();
         AnimationSet();
         CheckEnemy();
+        TestMode();
     }
     void LateUpdate()
     {
@@ -93,11 +95,27 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
             Vector3 vec = (target.transform.position - bodyTrans.position);
             float tempy = vec.y;
             vec.y = transform.position.y;
+            Debug.Log(vec);
             Quaternion q2 = Quaternion.LookRotation(vec);
             vec.y = tempy - 0.5f;
             Quaternion q = Quaternion.LookRotation(vec);
             transform.rotation = Quaternion.Slerp(transform.rotation, q2, 1.0f);
+            transform.localEulerAngles = new Vector3(0, transform.localEulerAngles.y, 0);
             bodyTrans.rotation = Quaternion.Slerp(transform.rotation, q, 1.0f);            
+        }
+    }
+
+    private void TestMode()
+    {
+        if (enemyState == EnemyState.Death)
+            return;
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            searchingRegion.enabled = !searchingRegion.enabled;
+            if(searchingRegion.enabled == false)
+            {
+                searchingRegion.ClearMesh();
+            }
         }
     }
 
@@ -408,6 +426,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
                 isAim = false;
                 isAttack = false;
                 isShoot = false;
+                searchingRegion.enabled = false;
                 this.GetComponent<Collider>().enabled = false;
                 this.enemyState = EnemyState.Death;
                 SoundManager.Instance.PlaySound(transform.position, "EnemyDeath", 1.0f, true, 1.0f, 0.1f);
@@ -493,7 +512,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         yield return null;
     }
 
-    public IEnumerator ViewMinimap(float time)
+    public IEnumerator ViewMinimapLoop(float time)
     {
         isDetected = true;
         minimapPos.SetActive(true);
@@ -501,6 +520,11 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable
         minimapPos.SetActive(false);
         isDetected = false;
         yield return null;
+    }
+
+    public void ViewMinimap(float time)
+    {
+        StartCoroutine(ViewMinimapLoop(time));
     }
 }
 

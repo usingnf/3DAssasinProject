@@ -4,9 +4,8 @@ using UnityEngine;
 
 public class SearchingRegion : MonoBehaviour
 {
-    //private Patrol patrol;
-
     public Transform Player;
+    public Transform eyeTrans;
     public float viewRadius;
     [Range(0, 360)]
     public float viewAngle;
@@ -20,24 +19,18 @@ public class SearchingRegion : MonoBehaviour
     Mesh mesh;
 
     public List<Transform> visibleTargets = new List<Transform>();
-    void Awake()
-    {
-        //patrol = GetComponent<Patrol>();
-    }
 
     void Start()
     {
         mesh = new Mesh();
         mesh.name = "View Mesh";
-        //filter.mesh = mesh; 
-        //StartCoroutine("FindTargetsWithDelay", .2f);
-        StartCoroutine(CreateMesh());
+        filter.mesh = mesh; 
+        //StartCoroutine(CreateMesh());
     }
 
-    void Update()
+    void LateUpdate()
     {
-        
-        
+        CreateMesh2();
     }
 
     private IEnumerator CreateMesh()
@@ -62,7 +55,7 @@ public class SearchingRegion : MonoBehaviour
             vertices[0] = new Vector3(0, 0, 0);
             for(int i = 0; i < vertexCount-1; i++)
             {
-                vertices[i+1] = viewPoint[i];
+                vertices[i + 1] = transform.InverseTransformPoint(viewPoint[i]);//viewPoint[i];
                 if(i < vertexCount-2)
                 {
                     triangles[i * 3] = 0;
@@ -70,22 +63,71 @@ public class SearchingRegion : MonoBehaviour
                     triangles[i * 3 + 2] = i + 2;
                 }
             }
+
+            mesh.Clear();
+            mesh.vertices = vertices;
+            mesh.triangles = triangles;
+            mesh.RecalculateNormals();
+            //mesh.RecalculateBounds();
             yield return new WaitForSeconds(0.02f);
         }
         yield return null;
+    }
+
+    public void ClearMesh()
+    {
+        mesh.Clear();
+    }
+
+    private void CreateMesh2()
+    {
+        int stepCount = Mathf.RoundToInt(viewAngle * meshResolution);
+        float stepAngleSize = viewAngle / stepCount;
+        List<Vector3> viewPoint = new List<Vector3>();
+        for (int i = 0; i < stepCount; i++)
+        {
+            float angle = transform.eulerAngles.y - viewAngle / 2 + stepAngleSize * i;
+            //Debug.DrawLine(transform.position, transform.position + DirFromAngle(angle,true) * viewRadius, Color.red);
+            //정점좌표 구하기
+            ViewCastInfo newViewCast = ViewCast(angle);
+            viewPoint.Add(newViewCast.position);
+        }
+
+        int vertexCount = viewPoint.Count + 1;
+        Vector3[] vertices = new Vector3[vertexCount];
+        int[] triangles = new int[(vertexCount - 2) * 3];
+        vertices[0] = new Vector3(0, 0, 0);
+        for (int i = 0; i < vertexCount - 1; i++)
+        {
+            vertices[i + 1] = transform.InverseTransformPoint(viewPoint[i]);//viewPoint[i];
+            if (i < vertexCount - 2)
+            {
+                triangles[i * 3] = 0;
+                triangles[i * 3 + 1] = i + 1;
+                triangles[i * 3 + 2] = i + 2;
+            }
+        }
+
+        mesh.Clear();
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+        //mesh.RecalculateBounds();
     }
 
     public ViewCastInfo ViewCast(float globalAngle)
     {
         Vector3 dir = DirFromAngle(globalAngle, true);
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, dir, out hit, LayerMask.GetMask("Wall")))
+        if (Physics.Raycast(eyeTrans.position, dir, out hit, viewRadius, LayerMask.GetMask("Wall")))
         {
-            return new ViewCastInfo(true, hit.point, hit.distance, globalAngle);
+            Vector3 vec = hit.point;
+            vec.y = transform.position.y + 0.1f;
+            return new ViewCastInfo(true, vec, hit.distance, globalAngle);
         }
         else
         {
-            return new ViewCastInfo(false, transform.position + dir * viewRadius, viewRadius, globalAngle);
+            return new ViewCastInfo(false, transform.position + dir * viewRadius + new Vector3(0,0.1f,0), viewRadius, globalAngle);
         }
     }
 

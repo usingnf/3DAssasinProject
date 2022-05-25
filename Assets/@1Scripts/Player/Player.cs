@@ -522,10 +522,10 @@ public class Player : MonoBehaviour, IDamagable
                     if (outline != null)
                     {
                         StartCoroutine(outline.Detect());
-                        Enemy enemy = collider.GetComponent<Enemy>();
-                        if(enemy != null)
+                        IViewMinimap minimap = collider.GetComponent<IViewMinimap>();
+                        if(minimap != null)
                         {
-                            StartCoroutine(enemy.ViewMinimap(5.0f));
+                            minimap.ViewMinimap(5.0f);
                         }
                     }
                 }
