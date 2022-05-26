@@ -17,14 +17,14 @@ public enum EnemyState
     Return, //귀환중
     Noise, //소리감지
 }
-
 public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
 {
     [Header("Status")]
+    public SwatStatus swatData;
     private float viewAngle = 60.0f;
     private float viewDistance = 15.0f;
     private float attackDistance = 7.0f;
-    //private float audioDistance = 10.0f;
+    private float audioDistance = 13.0f;
     private bool isAim = false;
     private bool isAttack = false;
     private bool isShoot = false;
@@ -55,6 +55,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     public Transform bodyTrans;
     public GameObject minimapPos;
     public SearchingRegion searchingRegion;
+    public Transform overHead;
+    private GameObject emotion;
 
     [Header("Extern Object")]
     public GameObject target;
@@ -64,22 +66,26 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
 
     void Start()
     {
+        viewAngle = swatData.viewAngle;
+        viewDistance = swatData.viewDistance;
+        attackDistance = swatData.audioDistance;
+        audioDistance = swatData.audioDistance;
+        lostDelayTime = swatData.lostDelayTime;
+        returnDelayTime = swatData.returnDelayTime;
+        scoutDelayTime = swatData.scoutDelayTime;
+        hp = swatData.hp;
+        speed = swatData.speed;
+        damage = swatData.damage;
+
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
         startPos = transform.position;
         startAngle = transform.rotation;
-        
+        this.GetComponent<SphereCollider>().radius = audioDistance;
+        searchingRegion.viewAngle = viewAngle * 2;
+        searchingRegion.viewRadius = viewDistance;
     }
 
-    private void OnDrawGizmos()
-    {
-        //Handles.color = new Color(1,0,0,0.5f);
-        //Handles.DrawSolidArc(transform.position, transform.up, transform.forward, 60.0f / 2, 5.0f);
-        //Handles.DrawSolidArc(transform.position, transform.up, transform.forward, -60.0f / 2, 5.0f);
-    }
-
-
-    // Update is called once per frame
     void Update()
     {
         State();
@@ -95,7 +101,6 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
             Vector3 vec = (target.transform.position - bodyTrans.position);
             float tempy = vec.y;
             vec.y = transform.position.y;
-            Debug.Log(vec);
             Quaternion q2 = Quaternion.LookRotation(vec);
             vec.y = tempy - 0.5f;
             Quaternion q = Quaternion.LookRotation(vec);
@@ -202,6 +207,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
             }
             if (Time.time > lastReturnTime + returnDelayTime)
             {
+                if (emotion != null)
+                    Destroy(emotion);
                 enemyState = EnemyState.Return;
                 agent.SetDestination(startPos);
             }
@@ -282,6 +289,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
             }
             agent.speed = 0.01f;
             agent.SetDestination(this.transform.position);
+            this.enabled = false;
         }
     }
     private IEnumerator isPath(EnemyState state)
@@ -292,6 +300,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         {
             if (agent.hasPath == false)
             {
+                if (emotion != null)
+                    Destroy(emotion);
                 enemyState = EnemyState.Return;
             }
         }
@@ -346,7 +356,12 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                             if (enemyState == EnemyState.None || enemyState == EnemyState.Guard ||
                                 enemyState == EnemyState.Scout || enemyState == EnemyState.Return ||
                                 enemyState == EnemyState.Noise)
+                            {
+                                if (enemyState != EnemyState.Chase)
+                                    CreateEmotion("<color=#ff0000>!</color>", 2.0f);
                                 enemyState = EnemyState.Chase;
+                            }
+                                
                         }
                         else
                         {
@@ -364,7 +379,12 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                                     if (enemyState == EnemyState.None || enemyState == EnemyState.Guard ||
                                         enemyState == EnemyState.Scout || enemyState == EnemyState.Return ||
                                         enemyState == EnemyState.Noise)
+                                    {
+                                        if(enemyState != EnemyState.Chase)
+                                            CreateEmotion("<color=#ff0000>!</color>", 2.0f);
                                         enemyState = EnemyState.Chase;
+                                    }
+                                        
                                 }
                             }
                         }
@@ -379,6 +399,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     {
         if (enemyState == EnemyState.Death)
             return;
+        if (emotion != null)
+            Destroy(emotion);
         agent.SetDestination(transform.position);
         enemyState = EnemyState.Shoot;
     }
@@ -418,6 +440,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         this.hp += -damage;
         if(this.isDead == false)
         {
+            if (emotion != null)
+                Destroy(emotion);
             if (this.hp <= 0)
             {
                 animator.SetTrigger("Death");
@@ -451,6 +475,10 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         if (enemyState == EnemyState.Shoot)
             return;
         agent.SetDestination(position);
+        if(enemyState != EnemyState.Noise && enemyState != EnemyState.Chase)
+        {
+            CreateEmotion("<color=#aaaa00>?</color>", 3.0f);
+        }
         enemyState = EnemyState.Noise;
     }
     //Used at animation event
@@ -493,7 +521,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                         Vector3 normal = (objPos - pos).normalized;
                         float tempAngle = (Mathf.Atan2(normal.z, normal.x) * Mathf.Rad2Deg) - 90;
                         tempAngle += transform.rotation.eulerAngles.y;
-                        if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(225.0f * Mathf.Deg2Rad))
+                        if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(75.0f * Mathf.Deg2Rad))
                         {
                             lastFindTime = Time.time;
                             //curTarget = objTrans.gameObject;
@@ -525,6 +553,15 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     public void ViewMinimap(float time)
     {
         StartCoroutine(ViewMinimapLoop(time));
+    }
+
+    public void CreateEmotion(string text, float time)
+    {
+        if(emotion != null)
+            Destroy(emotion);
+        emotion = Instantiate(Resources.Load<GameObject>("Prefab/3DText"), overHead.position, overHead.rotation, overHead);
+        emotion.GetComponent<TextMesh>().text = text;
+        Destroy(emotion, time);
     }
 }
 

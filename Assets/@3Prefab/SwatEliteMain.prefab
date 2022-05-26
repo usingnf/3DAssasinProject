@@ -30,6 +30,36 @@ Transform:
   m_Father: {fileID: 2308719689253410950}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &197361141867737326
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4974209190265384006}
+  m_Layer: 10
+  m_Name: OverHead
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4974209190265384006
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 197361141867737326}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.616, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 2930016791882183736}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &335021457320729086
 GameObject:
   m_ObjectHideFlags: 0
@@ -970,7 +1000,7 @@ GameObject:
   - component: {fileID: 2930016791882183736}
   - component: {fileID: 9099996297056546370}
   - component: {fileID: 2585719377766739642}
-  - component: {fileID: 5744331567735392692}
+  - component: {fileID: 922760855308978117}
   - component: {fileID: 2585719377766739644}
   - component: {fileID: 2585719377766739647}
   - component: {fileID: 2585719377766739646}
@@ -978,7 +1008,7 @@ GameObject:
   - component: {fileID: 2585719377766739584}
   - component: {fileID: 2585719377766739587}
   m_Layer: 10
-  m_Name: Swat2Main
+  m_Name: SwatEliteMain
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -999,6 +1029,7 @@ Transform:
   - {fileID: 7276075866036065452}
   - {fileID: 3396624252308251667}
   - {fileID: 3396624251160677989}
+  - {fileID: 4974209190265384006}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: -197.77, z: 0}
@@ -1043,7 +1074,7 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
---- !u!114 &5744331567735392692
+--- !u!114 &922760855308978117
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1052,10 +1083,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2585719377766739586}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e801125c4beabb54e9048ca9e1138830, type: 3}
+  m_Script: {fileID: 11500000, guid: ce64b8adbc08ac04e81a68d3403860d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   soundThreshold: 0
+  swatData: {fileID: 11400000, guid: 64ff29dee56d90b45988ff361047f1c6, type: 2}
   startState: 4
   enemyState: 4
   hp: 1
@@ -1068,6 +1100,7 @@ MonoBehaviour:
   bodyTrans: {fileID: 6958388684426389311}
   minimapPos: {fileID: 3396624252308251666}
   searchingRegion: {fileID: 2585719377766739587}
+  overHead: {fileID: 4974209190265384006}
   target: {fileID: 0}
   curTarget: {fileID: 0}
   blood: {fileID: 7403488021651589732, guid: 88c202515c7e0da49b563a46128f498a, type: 3}
@@ -1160,18 +1193,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 359676028cc3a2848a4e237e1cb3adb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Player: {fileID: 0}
-  eyeTrans: {fileID: 3396624252669639523}
   viewRadius: 15
   viewAngle: 120
+  offRadius: 0
+  meshResolution: 0.3
   targetMask:
     serializedVersion: 2
     m_Bits: 0
   obstacleMask:
     serializedVersion: 2
     m_Bits: 0
-  meshResolution: 0.3
-  filter: {fileID: 0}
+  eyeTrans: {fileID: 3396624252669639523}
+  filter: {fileID: 3396624251160677987}
+  Player: {fileID: 0}
   visibleTargets: []
 --- !u!1 &2585719378615359609
 GameObject:

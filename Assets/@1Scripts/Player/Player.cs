@@ -592,8 +592,11 @@ public class Player : MonoBehaviour, IDamagable
                 continue;
             }
             attackSuccess = true;
-            GameObject obj = Instantiate(blood, attackPoint.position, Quaternion.LookRotation(knifeTrans.position - attackPoint.position));
-            Destroy(obj, 3.0f);
+            if(c.tag == "Enemy")
+            {
+                GameObject obj = Instantiate(blood, attackPoint.position, Quaternion.LookRotation(knifeTrans.position - attackPoint.position));
+                Destroy(obj, 3.0f);
+            }
             c.GetComponent<IDamagable>().Damaged(damage);
         }
         if (attackSuccess == true)
@@ -663,15 +666,23 @@ public class Player : MonoBehaviour, IDamagable
         throwKnife.transform.parent = null;
         throwKnife.transform.LookAt(destVec);
         throwKnife.GetComponent<ThrowKnife>().enabled = true;
-        SoundManager.Instance.PlaySound(leftHand.position, "KnifeThrow", 1.0f, true, 1.5f, 0.1f);
+        SoundManager.Instance.PlaySound(leftHand.position, "KnifeThrow", 1.0f);
+        StartCoroutine(ThrowKnifeDetect());
         Destroy(throwKnife, 7.0f);
         
+    }
+
+    private IEnumerator ThrowKnifeDetect()
+    {
+        yield return new WaitForSeconds(0.8f);
+        SoundManager.Instance.PlaySound(leftHand.position, "KnifeThrow", 0.0f, true, 1.5f, 0.1f);
     }
     //Used at Animation Event
     private void ThrowFinish()
     {
         isAttack = false;
         animator.SetBool("isThrow", false);
+        
     }
     private void OnTriggerEnter(Collider other)
     {

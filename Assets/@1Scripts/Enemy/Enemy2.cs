@@ -7,10 +7,11 @@ using UnityEngine.AI;
 public class Enemy2 : SoundReceiver, IDamagable, Receiveable, IViewMinimap
 {
     [Header("Status")]
+    public SwatStatus swatData;
     private float viewAngle = 60.0f;
     private float viewDistance = 15.0f;
     private float attackDistance = 7.0f;
-    //private float audioDistance = 10.0f;
+    private float audioDistance = 13.0f;
     private bool isAim = false;
     private bool isAttack = false;
     private bool isShoot = false;
@@ -50,22 +51,26 @@ public class Enemy2 : SoundReceiver, IDamagable, Receiveable, IViewMinimap
 
     void Start()
     {
+        viewAngle = swatData.viewAngle;
+        viewDistance = swatData.viewDistance;
+        attackDistance = swatData.audioDistance;
+        audioDistance = swatData.audioDistance;
+        lostDelayTime = swatData.lostDelayTime;
+        returnDelayTime = swatData.returnDelayTime;
+        scoutDelayTime = swatData.scoutDelayTime;
+        hp = swatData.hp;
+        speed = swatData.speed;
+        damage = swatData.damage;
+
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
         startPos = transform.position;
         startAngle = transform.rotation;
-        
+        this.GetComponent<SphereCollider>().radius = audioDistance;
+        searchingRegion.viewAngle = viewAngle * 2;
+        searchingRegion.viewRadius = viewDistance;
     }
 
-    private void OnDrawGizmos()
-    {
-        //Handles.color = new Color(1,0,0,0.5f);
-        //Handles.DrawSolidArc(transform.position, transform.up, transform.forward, 60.0f / 2, 5.0f);
-        //Handles.DrawSolidArc(transform.position, transform.up, transform.forward, -60.0f / 2, 5.0f);
-    }
-
-
-    // Update is called once per frame
     void Update()
     {
         State();

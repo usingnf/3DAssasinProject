@@ -4,20 +4,23 @@ using UnityEngine;
 
 public class SearchingRegion : MonoBehaviour
 {
-    public Transform Player;
-    public Transform eyeTrans;
+    [Header("Status")]
     public float viewRadius;
     [Range(0, 360)]
     public float viewAngle;
-
+    public float offRadius;
+    [Range(0, 1)]
+    public float meshResolution;
     public LayerMask targetMask;
     public LayerMask obstacleMask;
 
-    [Range (0,1)]
-    public float meshResolution;
+    [Header("Internal Object")]
+    public Transform eyeTrans;
     public MeshFilter filter;
     Mesh mesh;
 
+    [Header("Extern Object")]
+    public Transform Player;
     public List<Transform> visibleTargets = new List<Transform>();
 
     void Start()
@@ -42,7 +45,7 @@ public class SearchingRegion : MonoBehaviour
             List<Vector3> viewPoint = new List<Vector3>();
             for (int i = 0; i < stepCount; i++)
             {
-                float angle = transform.eulerAngles.y - viewAngle / 2 + stepAngleSize * i;
+                float angle = eyeTrans.eulerAngles.y + offRadius - viewAngle / 2 + stepAngleSize * i;
                 //Debug.DrawLine(transform.position, transform.position + DirFromAngle(angle,true) * viewRadius, Color.red);
                 //정점좌표 구하기
                 ViewCastInfo newViewCast = ViewCast(angle);
@@ -86,7 +89,7 @@ public class SearchingRegion : MonoBehaviour
         List<Vector3> viewPoint = new List<Vector3>();
         for (int i = 0; i < stepCount; i++)
         {
-            float angle = transform.eulerAngles.y - viewAngle / 2 + stepAngleSize * i;
+            float angle = eyeTrans.eulerAngles.y + offRadius - viewAngle / 2 + stepAngleSize * i;
             //Debug.DrawLine(transform.position, transform.position + DirFromAngle(angle,true) * viewRadius, Color.red);
             //정점좌표 구하기
             ViewCastInfo newViewCast = ViewCast(angle);
