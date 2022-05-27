@@ -7,6 +7,8 @@ TagManager:
   - Wall
   - ClimbWall
   - Enemy
+  - Blood
+  - FootPrint
   layers:
   - Default
   - TransparentFX
@@ -24,7 +26,7 @@ TagManager:
   - Minimap
   - ClimbWall
   - Door
-  - 
+  - Environment
   - 
   - 
   - 

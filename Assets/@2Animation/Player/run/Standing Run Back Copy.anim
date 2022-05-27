@@ -32355,15 +32355,15 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_Events:
-  - time: 0.1
-    functionName: FootStep
+  - time: 0.033333335
+    functionName: RightFootStep
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 1
     intParameter: 0
     messageOptions: 0
-  - time: 0.43333334
-    functionName: FootStep
+  - time: 0.3
+    functionName: LeftFootStep
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 1

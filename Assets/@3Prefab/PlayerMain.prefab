@@ -710,7 +710,7 @@ MonoBehaviour:
   isGravity: 1
   jumpPower: 0
   isAttack: 0
-  hp: 1
+  hp: 100
   isDead: 0
   isGround: 1
   fallingIntensity: 0
@@ -720,6 +720,7 @@ MonoBehaviour:
   isInvisible: 0
   isClimb: 0
   isDoor: 0
+  bloodFootTime: 0
   eyeTrans: {fileID: 4557627773109502719}
   characterController: {fileID: 510893041210730649}
   leftHand: {fileID: 8517092249736009201}
@@ -730,10 +731,15 @@ MonoBehaviour:
   eyesRenderer: {fileID: 4607680620400006537}
   eyeslashesRenderer: {fileID: 8315057685515061271}
   knifeRenderer: {fileID: 510893041684198031}
+  leftFoot: {fileID: 5289112634491587853}
+  rightFoot: {fileID: 2962909995230620431}
+  bodyTrans: {fileID: 3214893760771804487}
   knifeTrans: {fileID: 510893041686098031}
   attackPoint: {fileID: 510893040930182868}
   blood: {fileID: 7403488021651589732, guid: 88c202515c7e0da49b563a46128f498a, type: 3}
   detectLine: {fileID: 5784315766833815351, guid: 7cd31f16ce08d9a4bba1fd079c2a5f7f,
+    type: 3}
+  footPrint: {fileID: 8039155889685203376, guid: 8af64bb126ccf2e42b30ef6785678567,
     type: 3}
   throwKnifePrefab: {fileID: 2858036295744526679, guid: ca1ab35d34abbf144a313f083de09787,
     type: 3}
@@ -746,6 +752,10 @@ MonoBehaviour:
     type: 2}
   originBodyMaterial: {fileID: 2100000, guid: 04cb16935ed378845ae01b4894984ddf, type: 2}
   originKnifeMaterial: {fileID: 2100000, guid: 73352af4dc9f3c5409b2d7ef15d92774, type: 2}
+  bloodSmallPool: {fileID: 9114934636827266667, guid: 5b44d7a73fa558a4095113dbb13e68b3,
+    type: 3}
+  bloodPool: {fileID: 9154793842988948340, guid: e178821da6e37db42bef2e8632d055dc,
+    type: 3}
 --- !u!54 &852982782545462614
 Rigidbody:
   m_ObjectHideFlags: 0

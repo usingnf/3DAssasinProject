@@ -46,6 +46,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     private bool isDetected = false;
     public List<GameObject> location = new List<GameObject>();
     public GameObject curLocation = null;
+    private List<GameObject> tracePoint = new List<GameObject>();
 
     [Header("Internal Object")]
     public NavMeshAgent agent;
@@ -63,6 +64,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     public GameObject curTarget;
     public GameObject blood;
     public GameObject muzzle;
+    public GameObject bloodPool;
 
     void Start()
     {
@@ -109,6 +111,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
             bodyTrans.rotation = Quaternion.Slerp(transform.rotation, q, 1.0f);            
         }
     }
+
+    
 
     private void TestMode()
     {
@@ -358,7 +362,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                                 enemyState == EnemyState.Noise)
                             {
                                 if (enemyState != EnemyState.Chase)
-                                    CreateEmotion("<color=#ff0000>!</color>", 2.0f);
+                                    CreateEmotion("!", 2.0f, new Color(1,0,0));
                                 enemyState = EnemyState.Chase;
                             }
                                 
@@ -381,7 +385,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                                         enemyState == EnemyState.Noise)
                                     {
                                         if(enemyState != EnemyState.Chase)
-                                            CreateEmotion("<color=#ff0000>!</color>", 2.0f);
+                                            CreateEmotion("!", 2.0f, new Color(1, 0, 0));
                                         enemyState = EnemyState.Chase;
                                     }
                                         
@@ -420,7 +424,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         GameObject muzzleObj = Instantiate(muzzle, gunTrans);
         muzzle.GetComponent<ParticleSystem>().Play();
         Destroy(muzzleObj, 2.0f);
-        SoundManager.Instance.PlaySound(this.transform.position, "GunFire3", 1.0f, true, 13.0f, 0.1f);
+        SoundManager.Instance.PlaySound(this.transform.position, "GunFire3", 1.0f, true, 13.0f, 0.1f, 0.5f);
         if (Physics.Linecast(eyeTrans.position, target.transform.position, out RaycastHit hit, LayerMask.GetMask("Player", "Wall", "Ground")))
         {
             IDamagable d = hit.transform.GetComponent<IDamagable>();
@@ -477,7 +481,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         agent.SetDestination(position);
         if(enemyState != EnemyState.Noise && enemyState != EnemyState.Chase)
         {
-            CreateEmotion("<color=#aaaa00>?</color>", 3.0f);
+            CreateEmotion("?", 3.0f, new Color(1, 1, 0));
         }
         enemyState = EnemyState.Noise;
     }
@@ -494,6 +498,80 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         {
             StartCoroutine(KnifeDetect(obj));
         }
+        if (obj.CompareTag("Blood") || obj.CompareTag("FootPrint"))
+        {
+            if(tracePoint.Contains(obj) == false)
+            {
+                tracePoint.Add(obj);
+                StartCoroutine(CheckTracePoint(obj));
+            }
+        }
+    }
+
+    public void OnTriggerExit(Collider other)
+    {
+        GameObject obj = other.gameObject;
+        if (obj.CompareTag("Blood") || obj.CompareTag("FootPrint"))
+        {
+            if (tracePoint.Contains(obj) == true)
+            {
+                tracePoint.Remove(obj);
+            }
+        }
+    }
+
+    public IEnumerator CheckTracePoint(GameObject obj)
+    {
+        while(obj != null)
+        {
+            if (target == null)
+                yield break;
+            if (enemyState == EnemyState.Attack)
+                yield break;
+            if (enemyState == EnemyState.Shoot)
+                yield break;
+            if (enemyState == EnemyState.Death)
+                yield break;
+
+            RaycastHit hit;
+            Vector3 rayVec = eyeTrans.position + ((obj.transform.position - eyeTrans.position).normalized * viewDistance);
+            if (Physics.Linecast(eyeTrans.position, rayVec, out hit, LayerMask.GetMask("Environment", "Wall", "Ground", "Door", "ClimbWall")))
+            {
+                if (hit.collider != null)
+                {
+                    Transform objTrans = hit.transform;
+                    if (objTrans.CompareTag("Blood") || objTrans.CompareTag("FootPrint"))
+                    {
+                        Vector3 objPos = objTrans.position;
+                        objPos.y = 0;
+                        Vector3 pos = transform.position;
+                        pos.y = 0;
+                        Vector3 normal = (objPos - pos).normalized;
+                        float tempAngle = (Mathf.Atan2(normal.z, normal.x) * Mathf.Rad2Deg) - 90;
+                        tempAngle += transform.rotation.eulerAngles.y;
+                        if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(viewAngle * Mathf.Deg2Rad))
+                        {
+                            lastFindTime = Time.time;
+                            //curTarget = objTrans.gameObject;
+                            lastDetectPos = objTrans.position;
+                            agent.SetDestination(lastDetectPos);
+                            if (enemyState == EnemyState.None || enemyState == EnemyState.Guard ||
+                                enemyState == EnemyState.Scout || enemyState == EnemyState.Return ||
+                                enemyState == EnemyState.Noise)
+                            {
+                                enemyState = EnemyState.Chase;
+                                CreateEmotion("!", 2.0f, new Color(1, 0, 0));
+                                break;
+                            }
+                                
+                        }
+                    }
+                }
+            }
+            yield return new WaitForSeconds(0.04f);
+        }
+
+        yield return null;
     }
 
     public IEnumerator KnifeDetect(GameObject obj)
@@ -555,12 +633,21 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         StartCoroutine(ViewMinimapLoop(time));
     }
 
-    public void CreateEmotion(string text, float time)
+    public void CreateBloodPool(float time)
+    {
+        Vector3 vec = bodyTrans.position;
+        vec.y = transform.position.y;
+        GameObject obj = Instantiate(bloodPool, vec, Quaternion.identity);
+        Destroy(obj, time);
+    }
+
+    public void CreateEmotion(string text, float time, Color color)
     {
         if(emotion != null)
             Destroy(emotion);
         emotion = Instantiate(Resources.Load<GameObject>("Prefab/3DText"), overHead.position, overHead.rotation, overHead);
         emotion.GetComponent<TextMesh>().text = text;
+        emotion.GetComponent<Renderer>().material.color = color;
         Destroy(emotion, time);
     }
 }

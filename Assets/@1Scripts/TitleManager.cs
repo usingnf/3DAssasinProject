@@ -18,7 +18,7 @@ public class TitleManager : MonoBehaviour
     {
         float SEVolume = PlayerPrefs.GetFloat("SEVolume");
         SESlider.value = SEVolume;
-        float MusicVolume = PlayerPrefs.GetFloat("SEVolume");
+        float MusicVolume = PlayerPrefs.GetFloat("MusicVolume");
         MusicSlider.value = MusicVolume;
         float maxStage = PlayerPrefs.GetInt("MaxStage");
 

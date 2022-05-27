@@ -1105,6 +1105,8 @@ MonoBehaviour:
   curTarget: {fileID: 0}
   blood: {fileID: 7403488021651589732, guid: 88c202515c7e0da49b563a46128f498a, type: 3}
   muzzle: {fileID: 8785351307604159505, guid: b9b74d12fc3c18e4ab7b79514b6b58c2, type: 3}
+  bloodPool: {fileID: 9154793842988948340, guid: e178821da6e37db42bef2e8632d055dc,
+    type: 3}
 --- !u!136 &2585719377766739644
 CapsuleCollider:
   m_ObjectHideFlags: 0

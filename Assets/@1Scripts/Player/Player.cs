@@ -28,7 +28,7 @@ public class Player : MonoBehaviour, IDamagable
     private float invisibleStaminaMinimum = 15.0f;
     public bool isClimb = false;
     public bool isDoor = false;
-    private float doorX = 0;
+    public float bloodFootTime = 0;
 
     private IEnumerator jumpReady = null;
     private IEnumerator standUpReady = null;
@@ -50,12 +50,16 @@ public class Player : MonoBehaviour, IDamagable
     public Renderer eyesRenderer;
     public Renderer eyeslashesRenderer;
     public Renderer knifeRenderer;
+    public Transform leftFoot;
+    public Transform rightFoot;
+    public Transform bodyTrans;
 
     [Header("Extern Object")]
     public Transform knifeTrans;
     public Transform attackPoint;
     public GameObject blood;
     public GameObject detectLine;
+    public GameObject footPrint;
     public GameObject throwKnifePrefab = null;
     public Transform cameraTrans;
     public Transform cameraPosTrans;
@@ -65,6 +69,8 @@ public class Player : MonoBehaviour, IDamagable
     public Material originClothesMaterial;
     public Material originBodyMaterial;
     public Material originKnifeMaterial;
+    public GameObject bloodSmallPool;
+    public GameObject bloodPool;
 
     [Header("Event")]
     public UnityAction<float> hpEvent;
@@ -76,7 +82,7 @@ public class Player : MonoBehaviour, IDamagable
         cloakingMaterial = Instantiate(cloakingMaterialOrigin);
         trans = transform;
         animator = GetComponent<Animator>();
-        SetHp(100);
+        SetHp(10000);
         SetStamina(100);
     }
 
@@ -92,6 +98,13 @@ public class Player : MonoBehaviour, IDamagable
         DoorCheck();
         Attack();
         Throw();
+        CheckBlood();
+    }
+
+    public void CheckBlood()
+    {
+        if(bloodFootTime > 0)
+            bloodFootTime -= Time.deltaTime;
     }
 
     public void Climb()
@@ -686,7 +699,7 @@ public class Player : MonoBehaviour, IDamagable
     }
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Finish")
+        if (other.CompareTag("Finish"))
         {
             int stage = PlayerPrefs.GetInt("Stage");
             if (stage >= PlayerPrefs.GetInt("MaxStage"))
@@ -694,6 +707,10 @@ public class Player : MonoBehaviour, IDamagable
                 PlayerPrefs.SetInt("MaxStage", stage);
             }
             GameManager.Instance.Finish();
+        }
+        else if (other.CompareTag("Blood"))
+        {
+            bloodFootTime = 5.0f;
         }
     }
     private void OnDrawGizmos()
@@ -754,18 +771,60 @@ public class Player : MonoBehaviour, IDamagable
 
     public void FootStep(float intensity)
     {
-        //Run
+        //Run -> not use, instead leftfootstep
         SoundManager.Instance.PlaySound(transform.position + new Vector3(0,0.1f, 0), "FootStep1", 1.0f, true, intensity, 0.1f);
     }
+
     public void FootStep2(float intensity)
     {
         //Walk
         SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 0.5f, true, intensity, 0.1f);
     }
 
+    public void LeftFootStep(float intensity)
+    {
+        //Run
+        SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 1.0f, true, intensity, 0.1f);
+        if (bloodFootTime > 0)
+            CreateFootPrint(leftFoot, 3.0f);
+    }
+
+    public void RightFootStep(float intensity)
+    {
+        //Run
+        SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 1.0f, true, intensity, 0.1f);
+        if(bloodFootTime > 0)
+            CreateFootPrint(rightFoot, 3.0f);
+    }
+
     public void FootStepSlow(float intensity)
     {
         //Crouch
         SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 0.35f);
+    }
+
+    public void CreateFootPrint(Transform footTrans, float time)
+    {
+        Vector3 pos = footTrans.position;
+        pos.y = transform.position.y;
+        Vector3 normal = footTrans.forward;
+        normal.y = 0;
+        Quaternion q = Quaternion.LookRotation(normal) * Quaternion.Euler(0, 170, 0);
+        GameObject obj = Instantiate(footPrint, pos, q);
+        if(bloodFootTime > 0)
+        {
+            obj.GetComponent<Renderer>().material.color = new Color(0.5f,0,0);
+            GameObject obj2 = Instantiate(bloodSmallPool, pos, q);
+            Destroy(obj2, time);
+        }
+        Destroy(obj, time);
+    }
+
+    public void CreateBloodPool(float time)
+    {
+        Vector3 vec = bodyTrans.position;
+        vec.y = transform.position.y;
+        GameObject obj = Instantiate(bloodPool, vec, Quaternion.identity);
+        Destroy(obj, time);
     }
 }
