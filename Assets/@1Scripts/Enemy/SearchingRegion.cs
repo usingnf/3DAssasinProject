@@ -2,6 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//Enemy의 시야각 표기
+/*
+ * 원리
+ * 1. 시야각도만큼 다수의 Raycast 사용.
+ * 2. Raycast가 장애물 충돌시 해당 위치를 저장
+ * 3. Raycast를 통해 얻은 좌표를 연결하여 Mesh 생성
+ */
 public class SearchingRegion : MonoBehaviour
 {
     [Header("Status")]
@@ -22,6 +29,9 @@ public class SearchingRegion : MonoBehaviour
     [Header("Extern Object")]
     public Transform Player;
     public List<Transform> visibleTargets = new List<Transform>();
+    public Material greenMaterial;
+    public Material orangeMaterial;
+    public Material redMaterial;
 
     void Start()
     {
@@ -36,6 +46,7 @@ public class SearchingRegion : MonoBehaviour
         CreateMesh2();
     }
 
+    //연산량 감소를 위한 Coroutine code
     private IEnumerator CreateMesh()
     {
         while(true)
@@ -79,9 +90,12 @@ public class SearchingRegion : MonoBehaviour
 
     public void ClearMesh()
     {
+        if (mesh == null)
+            return;
         mesh.Clear();
     }
 
+    //LateUpdate에서 처리.
     private void CreateMesh2()
     {
         int stepCount = Mathf.RoundToInt(viewAngle * meshResolution);
@@ -118,6 +132,7 @@ public class SearchingRegion : MonoBehaviour
         //mesh.RecalculateBounds();
     }
 
+    //해당 각도에 Raycast를 발사하여 최종 좌표 반환
     public ViewCastInfo ViewCast(float globalAngle)
     {
         Vector3 dir = DirFromAngle(globalAngle, true);
@@ -134,6 +149,7 @@ public class SearchingRegion : MonoBehaviour
         }
     }
 
+    //각도를 벡터로 변환
     public Vector3 DirFromAngle(float angleInDegrees, bool angleIsGlobal)
     {
         if (!angleIsGlobal)
@@ -143,8 +159,7 @@ public class SearchingRegion : MonoBehaviour
         return new Vector3(Mathf.Sin(angleInDegrees * Mathf.Deg2Rad), 0, Mathf.Cos(angleInDegrees * Mathf.Deg2Rad));
     }
 
-    
-
+    //좌표 데이터
     public struct ViewCastInfo
     {
         public bool hit;
@@ -163,7 +178,7 @@ public class SearchingRegion : MonoBehaviour
     }
 
 
-    // not use
+    // Raycast 발사 도중 적을 발견했을 경우 적 발견하는 방법. 사용하지 않고 Enemy에서 구현됨.
     IEnumerator FindTargetsWithDelay(float delay)
     {
         while (true)
@@ -191,5 +206,10 @@ public class SearchingRegion : MonoBehaviour
             }
         }
     }
-}
 
+    //표시 색상 변경
+    public void ChangeColor(Color color)
+    {
+        filter.gameObject.GetComponent<Renderer>().material.color = color;
+    }
+}

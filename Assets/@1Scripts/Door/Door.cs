@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//90도 이하로 움직이는 문
 public class Door : MonoBehaviour, IOpen
 {
     private float startAngle = 0;
@@ -37,8 +38,10 @@ public class Door : MonoBehaviour, IOpen
         return startAngle;
     }
 
+    //intensity : 문을 완전히 여는 속도(강도)
     public void OpenPerfect(float intensity)
     {
+        //이전의 실행명령 취소
         if (excuteCoroutine != null)
             StopCoroutine(excuteCoroutine);
         excuteCoroutine = OpenCoroutine(intensity);
@@ -67,6 +70,7 @@ public class Door : MonoBehaviour, IOpen
 
     public void ClosePerfect(float intensity)
     {
+        //이전의 실행명령 취소
         if (excuteCoroutine != null)
             StopCoroutine(excuteCoroutine);
         excuteCoroutine = CloseCoroutine(intensity);
@@ -94,6 +98,7 @@ public class Door : MonoBehaviour, IOpen
         yield return null;
     }
 
+    //Enemy가 인접할 경우 자동으로 문을 개방
     private void OnTriggerEnter(Collider other)
     {
         if(other.isTrigger == true)

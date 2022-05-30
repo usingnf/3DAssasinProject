@@ -3,7 +3,13 @@ guid: 359676028cc3a2848a4e237e1cb3adb5
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - eyeTrans: {instanceID: 0}
+  - filter: {instanceID: 0}
+  - Player: {instanceID: 0}
+  - greenMaterial: {fileID: 2100000, guid: 6e8e301aaa1361145a219a39707e4a60, type: 2}
+  - orangeMaterial: {fileID: 2100000, guid: fd10e855fcf184741bf5c7e02be81ac8, type: 2}
+  - redMaterial: {fileID: 2100000, guid: 19f67ac33e22e184f8654c1da18c5dca, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

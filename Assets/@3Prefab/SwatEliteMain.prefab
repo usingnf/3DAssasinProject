@@ -1209,6 +1209,9 @@ MonoBehaviour:
   filter: {fileID: 3396624251160677987}
   Player: {fileID: 0}
   visibleTargets: []
+  greenMaterial: {fileID: 0}
+  orangeMaterial: {fileID: 0}
+  redMaterial: {fileID: 0}
 --- !u!1 &2585719378615359609
 GameObject:
   m_ObjectHideFlags: 0
@@ -1220,7 +1223,7 @@ GameObject:
   - component: {fileID: 2930016792141497027}
   - component: {fileID: 2235572305844047206}
   - component: {fileID: 4099030351313762732}
-  m_Layer: 10
+  m_Layer: 0
   m_Name: assault4
   m_TagString: Untagged
   m_Icon: {fileID: 0}

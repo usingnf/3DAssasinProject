@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+//Turret은 상태 패턴을 통해 ai가 구현됨.
+//Turret의 상태
 public enum TurretState
 {
     None,
@@ -56,6 +58,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
     
     void Start()
     {
+        //Scriptable Object를 통해 스텟 기본 값 설정.
         viewAngle = turretData.viewAngle;
         viewDistance = turretData.viewDistance;
         lostDelayTime = turretData.lostDelayTime;
@@ -79,6 +82,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
         TestMode();
     }
 
+    //Animation의 각도 설정값을 무시하기 위해 LateUpdate에서 각도 강제 설정.
     void LateUpdate()
     {
         if (turretState == TurretState.Attack)
@@ -100,6 +104,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
         }
     }
 
+    //상태 패턴
     private void State()
     {
         if(turretState == TurretState.None)
@@ -122,6 +127,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
             {
                 if(lastFindTime + lostDelayTime < Time.time)
                 {
+                    searchingRegion.ChangeColor(new Color(0, 1, 0));
                     turretState = TurretState.Return;
                 }
             }
@@ -155,6 +161,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
         }
     }
 
+    //Animation Event에서 사용됨.
     private void Shoot()
     {
         GameObject muzzleObj = Instantiate(muzzle, gunTrans);
@@ -175,8 +182,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
         }
     }
 
-
-
+    //Raycast와 시야각을 통한 적 탐지.
     private void CheckEnemy()
     {
         if (target == null)
@@ -184,11 +190,13 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
         if (turretState == TurretState.Death)
             return;
 
+        //일정 시간 이상 적을 놓칠 경우 탐지 실패.
         if (Time.time >= lastFindTime + lostDelayTime)
         {
             curTarget = null;
         }
 
+        //Raycast와 시야각도를 계산.
         RaycastHit hit;
         Vector3 rayVec = eyeTrans.position + ((target.transform.position - eyeTrans.position).normalized * viewDistance);
         if (Physics.Linecast(eyeTrans.position, rayVec, out hit, LayerMask.GetMask("Player", "Wall", "Ground", "Door", "ClimbWall")))
@@ -204,17 +212,19 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
                     pos.y = 0;
                     Vector3 normal = (objPos - pos).normalized;
                     float tempAngle = (Mathf.Atan2(normal.z, normal.x) * Mathf.Rad2Deg) - 90;
-                    //Debug.Log(eyeTrans.rotation.eulerAngles.y);
                     tempAngle += eyeTrans.rotation.eulerAngles.y - 90;
                     if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(viewAngle * Mathf.Deg2Rad))
                     {
-                        Debug.Log("find");
                         lastFindTime = Time.time;
                         if(turretState == TurretState.Attack)
                         {
+                            if(curTarget == null)
+                            {
+                                searchingRegion.ChangeColor(new Color(1, 0, 0));
+                                MessageManager.Instance.CreateMessage($"{gameObject.name}에게 들킴");
+                            }
                             curTarget = target;
                             lastDetectPos = curTarget.transform.position;
-                            turretState = TurretState.Attack;
                         }
                         else
                         {
@@ -223,10 +233,15 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
                             {
                                 if (player.isInvisible == true)
                                 {
-
+                                    //은신일 경우 탐지 실패. 발견된 상태일 경우 은신 무시.
                                 }
                                 else
                                 {
+                                    if (curTarget == null)
+                                    {
+                                        searchingRegion.ChangeColor(new Color(1, 0, 0));
+                                        MessageManager.Instance.CreateMessage($"{gameObject.name}에게 들킴");
+                                    }
                                     curTarget = target;
                                     lastDetectPos = curTarget.transform.position;
                                     turretState = TurretState.Attack;
@@ -239,6 +254,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
         }
     }
 
+    //시야각 표기
     private void TestMode()
     {
         if(turretState == TurretState.Death)
@@ -253,6 +269,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
         }
     }
 
+    //특정 상황에서 일정 시간동안 미니맵에 표기
     public IEnumerator ViewMinimapLoop(float time)
     {
         isDetected = true;
@@ -268,6 +285,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
         StartCoroutine(ViewMinimapLoop(time));
     }
 
+    //데미지 및 사망여부 판단
     public bool Damaged(float damage)
     {
         this.hp += -damage;
@@ -277,9 +295,10 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
             if (this.hp <= 0)
             {
                 animator.SetTrigger("Death");
-                //animator.Play("Death");
                 this.isDead = true;
                 searchingRegion.enabled = false;
+                searchingRegion.ClearMesh();
+                MessageManager.Instance.CreateMessage($"{gameObject.name}가 파괴됨");
                 this.GetComponent<Collider>().enabled = false;
                 this.turretState = TurretState.Death;
                 GameObject obj = Instantiate(lightning, bodyTrans.position, transform.rotation * Quaternion.Euler(0,0,0));
@@ -288,7 +307,6 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
             }
             return true;
         }
-
         return false;
     }
 }

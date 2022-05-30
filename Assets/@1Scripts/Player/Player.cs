@@ -37,8 +37,8 @@ public class Player : MonoBehaviour, IDamagable
     private IEnumerator invisibleCoroutine = null;
 
     [Header("Internal Object")]
-    private Transform trans;
     public Transform eyeTrans;
+    private Transform trans;
     private Animator animator;
     public CharacterController characterController;
     public Transform leftHand;
@@ -88,25 +88,27 @@ public class Player : MonoBehaviour, IDamagable
 
     void Update()
     {
-        AnimationPlay();
-        Fall();
-        Climb();
-        Move();
-        Invisible();
-        Detect();
-        Jump();
-        DoorCheck();
-        Attack();
-        Throw();
-        CheckBlood();
+        AnimationPlay(); // Animation에 값 전달
+        Fall(); // 떨어지는 중인지 판단 + 낙하
+        Climb(); // 벽을 탈 수 있는지 판단 + 벽을 탐
+        Move(); // 이동
+        Invisible(); // 은신
+        Detect(); // Q스킬(탐지)
+        Jump(); // Space 점프
+        DoorCheck(); // 문을 탐지 및 문 열기
+        Attack(); // 좌클릭 공격
+        Throw(); // 우클릭 단검 던지기
+        CheckBlood(); // 피웅덩이를 밟은 상태인지 판단
     }
 
+    //일정 시간이 지나면 피 삭제
     public void CheckBlood()
     {
         if(bloodFootTime > 0)
             bloodFootTime -= Time.deltaTime;
     }
 
+    //정면에 넘을 수 있는 벽이 있으면 넘음. Raycast 활용.
     public void Climb()
     {
         if (isAttack == true)
@@ -125,6 +127,7 @@ public class Player : MonoBehaviour, IDamagable
         }
     }
     
+    //정면에 문이 있으면 문을 열거나 닫음. Interface와 Raycast활용
     public void DoorCheck()
     {
         if (Input.GetMouseButton(1))
@@ -189,6 +192,7 @@ public class Player : MonoBehaviour, IDamagable
         }
     }
 
+    //벽을 넘기위해 얼마나 점프해야하는지 확인(머리 위쪽에서 벽이 없는 구간까지 Raycast를 발사하여 높이 측정)
     private IEnumerator ClimbFind(GameObject wall, float distance)
     {
         Vector3 upVec = new Vector3(0, 1, 0) * 5.0f;
@@ -225,6 +229,7 @@ public class Player : MonoBehaviour, IDamagable
         animator.SetBool("isClimb", false);
     }
 
+    //은신 시작
     public void Invisible()
     {
         if(isInvisible == true)
@@ -264,6 +269,7 @@ public class Player : MonoBehaviour, IDamagable
     {
         if(start == true)
         {
+            //은신용 메터리얼로 변경
             bodyRenderer.material = cloakingMaterial;
             clothesRenderer.material = cloakingMaterial;
             eyesRenderer.material = cloakingMaterial;
@@ -280,10 +286,13 @@ public class Player : MonoBehaviour, IDamagable
                 yield return new WaitForSeconds(0.02f);
             }
             cloakingMaterial.SetFloat("_Opacity", 0.1f);
+            MessageManager.Instance.CreateMessage($"플레이어의 은신 효과 시작");
             isInvisible = true;
         }
         else
         {
+            isInvisible = false;
+            MessageManager.Instance.CreateMessage($"플레이어의 은신 효과 종료");
             while (true)
             {
                 float opacity = cloakingMaterial.GetFloat("_Opacity");
@@ -294,6 +303,7 @@ public class Player : MonoBehaviour, IDamagable
                 cloakingMaterial.SetFloat("_Opacity", opacity + (1.0f * Time.deltaTime));
                 yield return new WaitForSeconds(0.02f);
             }
+            //은신용 메터리얼 해제
             cloakingMaterial.SetFloat("_Opacity", 1.0f);
             bodyRenderer.material = originBodyMaterial;
             clothesRenderer.material = originClothesMaterial;
@@ -305,6 +315,8 @@ public class Player : MonoBehaviour, IDamagable
         yield return null;
     }
 
+
+    //상태에 따른 Animation 실행
     private void AnimationPlay()
     {
         if (isDead == true)
@@ -356,6 +368,8 @@ public class Player : MonoBehaviour, IDamagable
         animator.SetBool("isStandDown", false);
         yield break;
     }
+
+    //낙하 여부 + 낙하 속도 설정
     private void Fall()
     {
         if (characterController.isGrounded == false)
@@ -383,6 +397,8 @@ public class Player : MonoBehaviour, IDamagable
             }
         }
     }
+
+    //이동
     private void Move()
     {
         Vector3 moveVec = Vector3.zero;
@@ -484,6 +500,8 @@ public class Player : MonoBehaviour, IDamagable
             SetStamina(10.0f * Time.deltaTime, true);
         }
     }
+
+    //Q스킬(탐지) 사용.
     private void Detect()
     {
         if (Input.GetKeyDown(KeyCode.Q))
@@ -508,9 +526,10 @@ public class Player : MonoBehaviour, IDamagable
         detectCoroutine = DetectingLoop(range, obj);
         StartCoroutine(detectCoroutine);
     }
+    //Overlap(충돌)을 활용한 적 탐지
     private IEnumerator DetectingLoop(float range, GameObject obj)
     {
-        float nrange = 1.0f;
+        float nrange = 1.0f; //최소 시작 범위
         float lineSpeed = 0.2f;
         int count = (int)((range - nrange) / lineSpeed);
         Transform tempTrans = obj.transform;
@@ -538,6 +557,7 @@ public class Player : MonoBehaviour, IDamagable
                         IViewMinimap minimap = collider.GetComponent<IViewMinimap>();
                         if(minimap != null)
                         {
+                            //발견시 미니맵에 일정시간동안 표기
                             minimap.ViewMinimap(5.0f);
                         }
                     }
@@ -562,6 +582,7 @@ public class Player : MonoBehaviour, IDamagable
         {
             if (characterController.isGrounded == true)
             {
+                //장시간 점프가 불가능할시 점프 명령 취소
                 if (jumpReady != null)
                     StopCoroutine(jumpReady);
                 jumpReady = JumpReady();
@@ -569,6 +590,8 @@ public class Player : MonoBehaviour, IDamagable
             }
         }
     }
+
+    //일정 시간동안 명령입력 유지
     private IEnumerator JumpReady()
     {
         animator.SetBool("isJump", true);
@@ -576,6 +599,8 @@ public class Player : MonoBehaviour, IDamagable
         animator.SetBool("isJump", false);
         yield break;
     }
+
+    //근접 공격
     private void Attack()
     {
         if (isAttack == true)
@@ -593,6 +618,8 @@ public class Player : MonoBehaviour, IDamagable
             animator.SetBool("isAttack", true);
         }
     }
+    
+    //공격 성공 판정(충돌)
     public void KnifeAttackRange()
     {
         Collider[] hit;
@@ -605,7 +632,7 @@ public class Player : MonoBehaviour, IDamagable
                 continue;
             }
             attackSuccess = true;
-            if(c.tag == "Enemy")
+            if(c.CompareTag("Enemy"))
             {
                 GameObject obj = Instantiate(blood, attackPoint.position, Quaternion.LookRotation(knifeTrans.position - attackPoint.position));
                 Destroy(obj, 3.0f);
@@ -617,6 +644,8 @@ public class Player : MonoBehaviour, IDamagable
             SoundManager.Instance.PlaySound(this.transform.position, "KillBlood", 1.0f, true, 1.0f, 0.1f);
         }
     }
+
+    //Animation Event에서 사용
     public void KnifeSound()
     {
         SoundManager.Instance.PlaySound(transform.position, "KnifeAttack", 1.0f, true, 1.0f, 0.1f);
@@ -634,9 +663,11 @@ public class Player : MonoBehaviour, IDamagable
                 knifeCool = 0;
             yield return new WaitForSeconds(space);
         }
+        //evnet 실행으로 ui 갱신.
         knifeCoolEvent.Invoke(knifeCool / maxKnifeCool);
     }
 
+    //원거리 단검 던지기
     private void Throw()
     {
         if (isAttack == true)
@@ -659,7 +690,7 @@ public class Player : MonoBehaviour, IDamagable
         }
     }
 
-    //Used at Animation Event
+    //Animation Event에서 사용
     private void ThrowReady()
     {
         StartCoroutine(SetKnifeCool(maxKnifeCool));
@@ -670,7 +701,7 @@ public class Player : MonoBehaviour, IDamagable
         throwKnife.transform.localRotation = Quaternion.Euler(0, 45, 0f);
     }
 
-    //Used at Animation Event
+    //Animation Event에서 사용
     private void ThrowStart()
     {
         Vector3 destVec = cameraTrans.position + ((leftHand.position - cameraTrans.position) * 2.0f);
@@ -685,18 +716,21 @@ public class Player : MonoBehaviour, IDamagable
         
     }
 
+    //단검 투척시 적에게 보일경우 추격당함.
     private IEnumerator ThrowKnifeDetect()
     {
         yield return new WaitForSeconds(0.8f);
         SoundManager.Instance.PlaySound(leftHand.position, "KnifeThrow", 0.0f, true, 1.5f, 0.1f);
     }
-    //Used at Animation Event
+
+    //Animation Event에서 사용
     private void ThrowFinish()
     {
         isAttack = false;
         animator.SetBool("isThrow", false);
         
     }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Finish"))
@@ -719,11 +753,13 @@ public class Player : MonoBehaviour, IDamagable
         Gizmos.DrawWireSphere(knifeTrans.position, 0.6f);
     }
 
+    //데미지 및 사망 판정
     public bool Damaged(float damage)
     {
         SetHp(-damage, true);
         if (this.isDead == false)
         {
+            MessageManager.Instance.CreateMessage($"플레이어가 {damage} 만큼 데미지를 받음");
             if (this.hp <= 0)
             {
                 animator.SetTrigger("Death");
@@ -744,6 +780,7 @@ public class Player : MonoBehaviour, IDamagable
         {
             this.hp = hp;
         }
+        //event로 ui 갱신
         hpEvent?.Invoke(this.hp);
     }
     public void SetStamina(float stamina, bool isAdd = false)
@@ -766,43 +803,69 @@ public class Player : MonoBehaviour, IDamagable
             this.stamina = 0;
             return;
         }
+        //event로 ui 갱신
         staminaEvent?.Invoke(this.stamina);
     }
 
+    //Animation Event에서 사용
     public void FootStep(float intensity)
     {
         //Run -> not use, instead leftfootstep
         SoundManager.Instance.PlaySound(transform.position + new Vector3(0,0.1f, 0), "FootStep1", 1.0f, true, intensity, 0.1f);
     }
 
+    //Animation Event에서 사용
     public void FootStep2(float intensity)
     {
         //Walk
         SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 0.5f, true, intensity, 0.1f);
     }
 
+    //Animation Event에서 사용
     public void LeftFootStep(float intensity)
     {
-        //Run
-        SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 1.0f, true, intensity, 0.1f);
+        //Left Walk/Run
+        float volume = 1.0f;
+        if (intensity < 0.6f)
+            volume = 0.5f;
+        if(intensity > 0)
+            SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", volume, true, intensity, 0.1f);
         if (bloodFootTime > 0)
             CreateFootPrint(leftFoot, 3.0f);
     }
 
+    //Animation Event에서 사용
     public void RightFootStep(float intensity)
     {
-        //Run
-        SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 1.0f, true, intensity, 0.1f);
+        //Right Walk/Run
+        float volume = 1.0f;
+        if (intensity < 0.6f)
+            volume = 0.5f;
+        if (intensity > 0)
+            SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", volume, true, intensity, 0.1f);
         if(bloodFootTime > 0)
             CreateFootPrint(rightFoot, 3.0f);
     }
 
-    public void FootStepSlow(float intensity)
+    //Animation Event에서 사용
+    public void LeftFootStepSlow(float intensity)
     {
         //Crouch
         SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 0.35f);
+        if (bloodFootTime > 0)
+            CreateFootPrint(leftFoot, 3.0f);
     }
 
+    //Animation Event에서 사용
+    public void RightFootStepSlow(float intensity)
+    {
+        //Crouch
+        SoundManager.Instance.PlaySound(transform.position + new Vector3(0, 0.1f, 0), "FootStep1", 0.35f);
+        if (bloodFootTime > 0)
+            CreateFootPrint(rightFoot, 3.0f);
+    }
+
+    //발자국 생성
     public void CreateFootPrint(Transform footTrans, float time)
     {
         Vector3 pos = footTrans.position;
@@ -811,6 +874,7 @@ public class Player : MonoBehaviour, IDamagable
         normal.y = 0;
         Quaternion q = Quaternion.LookRotation(normal) * Quaternion.Euler(0, 170, 0);
         GameObject obj = Instantiate(footPrint, pos, q);
+        //피가 뭍었을 경우 피발자국 생성
         if(bloodFootTime > 0)
         {
             obj.GetComponent<Renderer>().material.color = new Color(0.5f,0,0);
@@ -820,6 +884,7 @@ public class Player : MonoBehaviour, IDamagable
         Destroy(obj, time);
     }
 
+    //사망시 피 웅덩이 생성
     public void CreateBloodPool(float time)
     {
         Vector3 vec = bodyTrans.position;

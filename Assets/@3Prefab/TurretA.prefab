@@ -555,7 +555,7 @@ GameObject:
   - component: {fileID: 3254524636820512739}
   - component: {fileID: 3254524636820512748}
   - component: {fileID: 7048922425533647475}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: TurretA
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -747,6 +747,9 @@ MonoBehaviour:
   filter: {fileID: 2309588738988469372}
   Player: {fileID: 0}
   visibleTargets: []
+  greenMaterial: {fileID: 0}
+  orangeMaterial: {fileID: 0}
+  redMaterial: {fileID: 0}
 --- !u!135 &7048922425533647475
 SphereCollider:
   m_ObjectHideFlags: 0

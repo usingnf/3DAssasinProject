@@ -4,6 +4,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 
+//Enemy는 상태패턴을 통해 ai가 구현됨.
+//Enemy의 상태 종류
 public enum EnemyState
 {
     None, //일반
@@ -68,6 +70,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
 
     void Start()
     {
+        //Scriptable Object를 통해 스텟 기본 값 설정.
         viewAngle = swatData.viewAngle;
         viewDistance = swatData.viewDistance;
         attackDistance = swatData.audioDistance;
@@ -95,6 +98,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         CheckEnemy();
         TestMode();
     }
+
+    //Animation의 통한 각도 설정값을 무시하기 위해 LateUpdate에서 상체의 각도를 강제 설정.
     void LateUpdate()
     {
         //Set character view angle
@@ -113,7 +118,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     }
 
     
-
+    //바닥에 Enemy의 시야각을 표기.
     private void TestMode()
     {
         if (enemyState == EnemyState.Death)
@@ -142,7 +147,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         }
         else if (enemyState == EnemyState.Stun)
         {
-            //행동 불능
+            //행동 불능, 구현 하지 않음.
             agent.speed = speed;
             if (isAim == true)
             {
@@ -151,7 +156,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         }
         else if (enemyState == EnemyState.Attack)
         {
-            //목표 방향으로 공격(RayCast)
+            //목표 방향으로 공격(RayCast을 통해 즉시 공격)
             minimapPos.SetActive(true);
             if (isAim == false)
             {
@@ -159,6 +164,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
             }
             if (curTarget == null)
             {
+                //목표를 놓쳤을 경우 마지막 목격 지점까지 이동
                 animator.SetBool("isAttack", false);
                 if (Vector3.Distance(transform.position, lastDetectPos) > 1.0f)
                 {
@@ -173,6 +179,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
             }
             else
             {
+                //공격 거리내에 있을 경우 공격. 아닐 경우 추격.
                 if (Vector3.Distance(transform.position, target.transform.position) < attackDistance + 0.5f)
                 {
                     animator.SetBool("isAttack", true);
@@ -186,7 +193,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         }
         else if (enemyState == EnemyState.Return)
         {
-            //처음 위치로 귀환
+            //처음 위치(상태)로 귀환
             agent.speed = speed;
             if (isAim == true)
             {
@@ -201,7 +208,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         }
         else if (enemyState == EnemyState.Guard)
         {
-            //주변 경계
+            //전방 경계
             if(isDetected == false)
                 minimapPos.SetActive(false);
             agent.speed = speed;
@@ -213,6 +220,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
             {
                 if (emotion != null)
                     Destroy(emotion);
+                searchingRegion.ChangeColor(new Color(0, 1, 0));
                 enemyState = EnemyState.Return;
                 agent.SetDestination(startPos);
             }
@@ -235,6 +243,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
             }
             else
             {
+                //공격 사정거리내 있을 경우 추격 중지후 공격
                 if (Vector3.Distance(transform.position, target.transform.position) < attackDistance)
                 {
                     agent.SetDestination(transform.position);
@@ -283,7 +292,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         }
         else if (enemyState == EnemyState.Shoot)
         {
-            //Animation, LateUpdate에서 처리
+            //Animation Event, LateUpdate에서 처리
         }
         else if (enemyState == EnemyState.Death)
         {
@@ -296,6 +305,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
             this.enabled = false;
         }
     }
+
+    //경로가 없을 경우 귀환
     private IEnumerator isPath(EnemyState state)
     {
         EnemyState temp = state;
@@ -306,11 +317,14 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
             {
                 if (emotion != null)
                     Destroy(emotion);
+                searchingRegion.ChangeColor(new Color(0, 1, 0));
                 enemyState = EnemyState.Return;
             }
         }
         yield return null;
     }
+
+    //애니메이션에 속도값과 조준 여부를 전달
     private void AnimationSet()
     {
         if (isShoot == true)
@@ -320,6 +334,8 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         animator.SetFloat("Speed", speedVec.magnitude);
         animator.SetBool("isAim", isAim);
     }
+
+    //실시간으로 적의 위치를 탐색(Raycast와 시야각도로 판정)
     private void CheckEnemy()
     {
         if (target == null)
@@ -327,11 +343,13 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         if (enemyState == EnemyState.Death)
             return;
 
+        //일정시간 이상 적을 놓칠 경우 추격 실패
         if(Time.time >= lastFindTime + lostDelayTime)
         {
             curTarget = null;
         }
 
+        //플레이어 방향으로 Raycast를 사용 및 장애물 여부 판단
         RaycastHit hit;        
         Vector3 rayVec = eyeTrans.position + ((target.transform.position - eyeTrans.position).normalized * viewDistance);
         if (Physics.Linecast(eyeTrans.position, rayVec, out hit, LayerMask.GetMask("Player", "Wall", "Ground", "Door", "ClimbWall")))
@@ -341,20 +359,23 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                 Transform objTrans = hit.transform;
                 if (objTrans.gameObject.layer == LayerMask.NameToLayer("Player"))
                 {
+                    //좌우 시야각만 판단
                     Vector3 objPos = objTrans.position;
                     objPos.y = 0;
                     Vector3 pos = transform.position;
                     pos.y = 0;
                     Vector3 normal = (objPos - pos).normalized;
                     float tempAngle = (Mathf.Atan2(normal.z, normal.x) * Mathf.Rad2Deg) - 90;
-                    tempAngle += transform.rotation.eulerAngles.y;
+                    tempAngle += transform.rotation.eulerAngles.y; // 일반적으로 빼야하지만, 각도계를 반대로써서 더해줌.
                     if (Mathf.Cos(tempAngle * Mathf.Deg2Rad) >= Mathf.Cos(viewAngle * Mathf.Deg2Rad))
                     {
+                        //은신 상태여도 발견된 상태면 숨지 못함.
                         lastFindTime = Time.time;
-                        //curTarget = objTrans.gameObject;
                         if(enemyState == EnemyState.Noise || enemyState == EnemyState.Attack ||
                             enemyState == EnemyState.Chase || enemyState == EnemyState.Shoot)
                         {
+                            if(curTarget == null)
+                                MessageManager.Instance.CreateMessage($"{gameObject.name}에게 발견됨");
                             curTarget = target;
                             lastDetectPos = curTarget.transform.position;
                             if (enemyState == EnemyState.None || enemyState == EnemyState.Guard ||
@@ -362,10 +383,12 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                                 enemyState == EnemyState.Noise)
                             {
                                 if (enemyState != EnemyState.Chase)
-                                    CreateEmotion("!", 2.0f, new Color(1,0,0));
+                                {
+                                    searchingRegion.ChangeColor(new Color(1, 0, 0));
+                                    CreateEmotion("!", 2.0f, new Color(1, 0, 0));
+                                }
                                 enemyState = EnemyState.Chase;
                             }
-                                
                         }
                         else
                         {
@@ -374,10 +397,12 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                             {
                                 if (player.isInvisible == true)
                                 {
-
+                                    //은신일 경우 발견 실패. 은신상태여도 발견된 상태면 숨지 못함.
                                 }
                                 else
                                 {
+                                    if (curTarget == null)
+                                        MessageManager.Instance.CreateMessage($"{gameObject.name}에게 발견됨");
                                     curTarget = target;
                                     lastDetectPos = curTarget.transform.position;
                                     if (enemyState == EnemyState.None || enemyState == EnemyState.Guard ||
@@ -385,7 +410,10 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                                         enemyState == EnemyState.Noise)
                                     {
                                         if(enemyState != EnemyState.Chase)
+                                        {
+                                            searchingRegion.ChangeColor(new Color(1, 0, 0));
                                             CreateEmotion("!", 2.0f, new Color(1, 0, 0));
+                                        }
                                         enemyState = EnemyState.Chase;
                                     }
                                         
@@ -398,7 +426,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         }
     }
     
-    //Used at animation event
+    //Animation Event에서 사용중.
     public void ShootStart()
     {
         if (enemyState == EnemyState.Death)
@@ -408,14 +436,14 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         agent.SetDestination(transform.position);
         enemyState = EnemyState.Shoot;
     }
-    //Used at animation event
+    //Animation Event에서 사용중.
     public void ShootEnd()
     {
         if (enemyState == EnemyState.Death)
             return;
         enemyState = EnemyState.Attack;
     }
-    //Used at animation event
+    //Animation Event에서 사용중.
     public void Shoot()
     {
         if (enemyState == EnemyState.Death)
@@ -439,6 +467,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         }
     }
 
+    //데미지 및 사망여부 판단
     public bool Damaged(float damage)
     {
         this.hp += -damage;
@@ -446,6 +475,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         {
             if (emotion != null)
                 Destroy(emotion);
+            MessageManager.Instance.CreateMessage($"{gameObject.name}가 {damage} 만큼 데미지를 받음");
             if (this.hp <= 0)
             {
                 animator.SetTrigger("Death");
@@ -455,6 +485,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                 isAttack = false;
                 isShoot = false;
                 searchingRegion.enabled = false;
+                searchingRegion.ClearMesh();
                 this.GetComponent<Collider>().enabled = false;
                 this.enemyState = EnemyState.Death;
                 SoundManager.Instance.PlaySound(transform.position, "EnemyDeath", 1.0f, true, 1.0f, 0.1f);
@@ -465,6 +496,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         return false;
     }
 
+    //일반 상태에서 주변에서 소음을 들었을 경우 해당 위치 탐색.
     public void ReceiveAction(Vector3 position)
     {
         //소리 들었음.
@@ -481,16 +513,22 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         agent.SetDestination(position);
         if(enemyState != EnemyState.Noise && enemyState != EnemyState.Chase)
         {
-            CreateEmotion("?", 3.0f, new Color(1, 1, 0));
+            if (curTarget == null)
+            {
+                searchingRegion.ChangeColor(new Color(1, 0.7f, 0));
+                MessageManager.Instance.CreateMessage($"{gameObject.name}가 소리를 들음");
+                CreateEmotion("?", 3.0f, new Color(1, 1, 0));
+            }
         }
         enemyState = EnemyState.Noise;
     }
-    //Used at animation event
+    //Animation Event에서 사용중.
     public void FootStep(float intensity)
     {
         SoundManager.Instance.PlaySound(transform.position, "SwatFootStep", 1.0f, false);
     }
 
+    //적의 오브젝트(나이프, 피, 발자국)를 탐지했을 경우 추적.
     public void OnTriggerEnter(Collider other)
     {
         GameObject obj = other.gameObject;
@@ -502,12 +540,14 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         {
             if(tracePoint.Contains(obj) == false)
             {
+                //발자국 및 피자국은 객체당 한번만 추적
                 tracePoint.Add(obj);
                 StartCoroutine(CheckTracePoint(obj));
             }
         }
     }
 
+    //발자국 및 피자국은 객체당 한번만 추적
     public void OnTriggerExit(Collider other)
     {
         GameObject obj = other.gameObject;
@@ -520,6 +560,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         }
     }
 
+    //Raycast와 충돌을 활용한 발자국 추적
     public IEnumerator CheckTracePoint(GameObject obj)
     {
         while(obj != null)
@@ -574,6 +615,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         yield return null;
     }
 
+    //Raycast와 충돌을 통한 나이프 추적
     public IEnumerator KnifeDetect(GameObject obj)
     {
         while(obj != null)
@@ -618,6 +660,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         yield return null;
     }
 
+    //일정 시간동안 미니맵에 자신의 위치를 표기
     public IEnumerator ViewMinimapLoop(float time)
     {
         isDetected = true;
@@ -633,6 +676,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         StartCoroutine(ViewMinimapLoop(time));
     }
 
+    //사망시 피웅덩이 생성
     public void CreateBloodPool(float time)
     {
         Vector3 vec = bodyTrans.position;
@@ -641,6 +685,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
         Destroy(obj, time);
     }
 
+    //감정 표현
     public void CreateEmotion(string text, float time, Color color)
     {
         if(emotion != null)

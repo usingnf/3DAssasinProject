@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//충돌과 Raycast로 청각 기능 구현
 public class SoundEmitter : MonoBehaviour
 {
     // 소리 세기
@@ -37,7 +38,7 @@ public class SoundEmitter : MonoBehaviour
         foreach (SoundReceiver sr in receiverDic.Values)
         {
             intensity = soundIntensity;
-            //레이 케이스트로 장애물 소리 감소
+            //Raycast로 장애물에 의한 소리 감소
             Vector3 direction = sr.transform.position - emitterPos;
             float rayDistance = direction.magnitude;
             direction.Normalize();
@@ -55,12 +56,13 @@ public class SoundEmitter : MonoBehaviour
             intensity -= soundAttenuation * distance;
             if (intensity < sr.soundThreshold)
                 continue;
-                        
+
             sr.Receive(soundIntensity, emitterPos);
         }
         yield break;
     }
 
+    //충돌을 통해 범위내 오브젝트에 대해서만 계산
     private void OnTriggerEnter(Collider other)
     {
         SoundReceiver receiver = null;

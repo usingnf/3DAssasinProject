@@ -3,26 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-
+//플레이어 전용 백뷰 시점 카메라
 public class BackView : MonoBehaviour
 {
-    public Transform target;
-    private Player player;
+    [Header("Status")]
     public float followSpeed = 10f;
     public float sensitivity = 100f;
     public float clampAngleUp = 30f;
     public float clampAngleDown = 30f;
     private float rotX;
     private float rotY;
-
-    public Transform trans;
-    public Transform cameraPos;
     public Vector3 dir;
     public Vector3 finalDir;
     public float minDistance;
     public float maxDistance;
     public float finalDistance;
     public float smoothness = 10f;
+
+    [Header("Internal Object")]
+    public Transform target;
+    public Transform trans;
+    public Transform cameraPos;
+
+    [Header("Extern Object")]
+    private Player player;    
+    
     void Start()
     {
         rotX = transform.localRotation.eulerAngles.x;
@@ -39,6 +44,7 @@ public class BackView : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //휠을 통한 확대 축소
         if (Input.mouseScrollDelta.y > 0)
         {
             minDistance += -Time.deltaTime * 10;
@@ -49,16 +55,19 @@ public class BackView : MonoBehaviour
             minDistance += Time.deltaTime * 10;
             maxDistance += Time.deltaTime * 10;
         }
+
+        //좌우 시점 이동
         rotX += -(Input.GetAxis("Mouse Y")) * sensitivity * Time.deltaTime;
-        
         rotX = Mathf.Clamp(rotX, -clampAngleUp, clampAngleDown);
+        //특정 동작중에 시야 이동 불가(좌우)
         if (player.isAttack == false && player.isDead == false && player.isClimb == false && player.isDoor == false)
         {
             rotY += Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
         }
         Quaternion rot = Quaternion.Euler(rotX, rotY, 0);
-        
         cameraPos.localRotation = Quaternion.Euler(rotX, 0, 0);
+
+        //특정 동작중에 시야 이동 불가(상하)
         if(player.isClimb == true)
         {
             rotY = target.localRotation.eulerAngles.y;
@@ -66,6 +75,7 @@ public class BackView : MonoBehaviour
         trans.rotation = Quaternion.Euler(0, rotY, 0);
 
         /*
+        //카메라 페이드인, 페이드 아웃.
         if(Input.GetKeyDown(KeyCode.E))
         {
             StartCoroutine(FadeIn(1.0f));
@@ -81,6 +91,7 @@ public class BackView : MonoBehaviour
         */
     }
 
+    //이미지를 활용한 페이드인, 페이드아웃
     public IEnumerator FadeIn(float time)
     {
         GameObject image = Instantiate(Resources.Load<GameObject>("Image"), GameObject.Find("Canvas").transform);
@@ -131,7 +142,8 @@ public class BackView : MonoBehaviour
     }
 
     private void LateUpdate()
-    {        
+    {   
+        //카메라와 목표사이에 장애물이 있을 경우 카메라를 근접시킴.
         if (Physics.Linecast(cameraPos.position - (cameraPos.forward * maxDistance), cameraPos.position, out RaycastHit hit))
         {
             if(hit.collider != null)

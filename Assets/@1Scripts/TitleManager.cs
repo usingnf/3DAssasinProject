@@ -13,15 +13,17 @@ public class TitleManager : MonoBehaviour
     public Slider SESlider;
     public Slider MusicSlider;
     public Button stageButton;
-    // Start is called before the first frame update
+    
     void Start()
     {
+        //PlayerPrefs로 옵션 값 및 최대 스테이지 값 관리
         float SEVolume = PlayerPrefs.GetFloat("SEVolume");
         SESlider.value = SEVolume;
         float MusicVolume = PlayerPrefs.GetFloat("MusicVolume");
         MusicSlider.value = MusicVolume;
         float maxStage = PlayerPrefs.GetInt("MaxStage");
 
+        //스테이지 버튼 생성
         for (int i = 1; i <= 40; i++)
         {
             Button button = Instantiate(stageButton, stageConent.transform);
@@ -46,6 +48,12 @@ public class TitleManager : MonoBehaviour
         stageUI.SetActive(true);
     }
 
+    public void StageClose()
+    {
+        stageUI.SetActive(false);
+        titlePanel.SetActive(true);
+    }
+
     public void OptionOpen()
     {
         titlePanel.SetActive(false);
@@ -59,7 +67,6 @@ public class TitleManager : MonoBehaviour
 
     public void SEChange(Slider slider)
     {
-        Debug.Log(slider.value);
         PlayerPrefs.SetFloat("SEVolume", slider.value);
     }
     public void MusicChange(Slider slider)
@@ -70,7 +77,7 @@ public class TitleManager : MonoBehaviour
     public void Exit()
     {
 #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
+        UnityEditor.EditorApplication.isPlaying = false; //에디터 실행 중지
 #else
         Application.Quit(); // 어플리케이션 종료
 #endif

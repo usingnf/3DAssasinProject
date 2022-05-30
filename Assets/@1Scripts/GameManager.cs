@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+//Game상태
 public enum GameState
 { 
     None,
@@ -12,6 +13,7 @@ public enum GameState
     Failed,
 }
 
+//Singleton
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -23,7 +25,7 @@ public class GameManager : MonoBehaviour
     
     void Awake()
     {
-        stage = PlayerPrefs.GetInt("Stage");
+        stage = PlayerPrefs.GetInt("Stage"); //PlayerPrefs로 현재/최대 스테이지 관리
         Instance = this;
         Cursor.lockState = CursorLockMode.Locked;
         //Cursor.visible = false;
@@ -32,11 +34,8 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-
-
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            
             if (gameState == GameState.Play)
             {
                 Pause();
@@ -56,6 +55,7 @@ public class GameManager : MonoBehaviour
         finishPanel.SetActive(true);
         Time.timeScale = 0.0f;
         gameState = GameState.Finish;
+        MessageManager.Instance.CreateMessage("스테이지 클리어");
     }
 
     public void Restart()
@@ -65,14 +65,21 @@ public class GameManager : MonoBehaviour
         gameState = GameState.Play;
         pausePanel.SetActive(false);
         failedPanel.SetActive(false);
+        MessageManager.Instance.CreateMessage("스테이지 재시작");
     }
 
     public void Next()
     {
         Time.timeScale = 1.0f;
         stage++;
+        if(SceneManager.GetSceneByName("Stage" + stage.ToString()) == null)
+        {
+            Exit();
+            return;
+        }
         SceneManager.LoadScene("Stage" + stage.ToString());
         gameState = GameState.Play;
+        MessageManager.Instance.CreateMessage("다음 스테이지");
     }
 
     public void Exit()
@@ -80,6 +87,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1.0f;
         SceneManager.LoadScene("TitleScene");
         gameState = GameState.None;
+        MessageManager.Instance.CreateMessage("게임종료");
     }
 
     public void Pause()
@@ -88,7 +96,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0.0f;
         gameState = GameState.Stop;
         pausePanel.SetActive(true);
-        Debug.Log("pause");
+        MessageManager.Instance.CreateMessage("일시정지");
     }
 
     public void Play()
@@ -97,6 +105,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1.0f;
         gameState = GameState.Play;
         pausePanel.SetActive(false);
+        MessageManager.Instance.CreateMessage("게임 시작");
     }
 
     public void Failed()
@@ -104,5 +113,6 @@ public class GameManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         gameState = GameState.Failed;
         failedPanel.SetActive(true);
+        MessageManager.Instance.CreateMessage("스테이지 실패");
     }
 }
