@@ -48,6 +48,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
     public Transform headTrans;
     public GameObject minimapPos;
     public SearchingRegion searchingRegion;
+    public Key key;
 
     [Header("Extern Object")]
     public GameObject target;
@@ -259,7 +260,7 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
     {
         if(turretState == TurretState.Death)
             return;
-        if (Input.GetKeyDown(KeyCode.T))
+        if (Input.GetKeyDown(key.T))
         {
             searchingRegion.enabled = !searchingRegion.enabled;
             if (searchingRegion.enabled == false)

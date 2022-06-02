@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 132596985330964608}
   - component: {fileID: 132596985330964609}
+  - component: {fileID: 4654136781208132288}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -45,3 +46,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   soundPrefab: {fileID: 1498060095389264015, guid: 81ed1c9613f274d479c86101ce8769f7,
     type: 3}
+--- !u!114 &4654136781208132288
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 132596985330964614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66c8ba9acbcad974d88219acc0f0f20d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameState: 0
+  finishPanel: {fileID: 0}
+  pausePanel: {fileID: 0}
+  failedPanel: {fileID: 0}
+  stage: 0

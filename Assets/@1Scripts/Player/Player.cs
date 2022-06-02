@@ -53,6 +53,7 @@ public class Player : MonoBehaviour, IDamagable
     public Transform leftFoot;
     public Transform rightFoot;
     public Transform bodyTrans;
+    public Key key;
 
     [Header("Extern Object")]
     public Transform knifeTrans;
@@ -116,7 +117,7 @@ public class Player : MonoBehaviour, IDamagable
         if (isDead == true)
             return;
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(key.Space))
         {
             RaycastHit hit;
             if (Physics.Linecast(eyeTrans.position, eyeTrans.position + trans.forward * 1.0f, out hit, LayerMask.GetMask("ClimbWall")))
@@ -245,7 +246,7 @@ public class Player : MonoBehaviour, IDamagable
             }
         }
         
-        if(Input.GetKeyDown(KeyCode.E))
+        if(Input.GetKeyDown(key.E))
         {
             if (stamina > invisibleStaminaMinimum)
             {
@@ -322,7 +323,7 @@ public class Player : MonoBehaviour, IDamagable
         if (isDead == true)
             return;
 
-        if (Input.GetKeyDown(KeyCode.C))
+        if (Input.GetKeyDown(key.C))
         {
             if (stand == 0)
             {
@@ -418,19 +419,19 @@ public class Player : MonoBehaviour, IDamagable
             return;
 
         //Get Move Direction
-        if (Input.GetKey(KeyCode.W))
+        if (Input.GetKey(key.W))
         {
             moveVec += trans.forward;
         }
-        if (Input.GetKey(KeyCode.A))
+        if (Input.GetKey(key.A))
         {
             moveVec += Quaternion.Euler(0, -90, 0) * trans.forward;
         }
-        if (Input.GetKey(KeyCode.S))
+        if (Input.GetKey(key.S))
         {
             moveVec += Quaternion.Euler(0, 180, 0) * trans.forward;
         }
-        if (Input.GetKey(KeyCode.D))
+        if (Input.GetKey(key.D))
         {
             moveVec += Quaternion.Euler(0, 90, 0) * trans.forward;
         }
@@ -468,7 +469,7 @@ public class Player : MonoBehaviour, IDamagable
             moveVec *= 0.5f;
         }
 
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKey(key.Shift))
         {
             //Run
             moveVec *= 2;
@@ -504,7 +505,7 @@ public class Player : MonoBehaviour, IDamagable
     //Q스킬(탐지) 사용.
     private void Detect()
     {
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(key.Q))
         {
             Detecting(10.0f);
         }
@@ -578,7 +579,7 @@ public class Player : MonoBehaviour, IDamagable
         if (isDead == true)
             return;
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(key.Space))
         {
             if (characterController.isGrounded == true)
             {

@@ -1101,6 +1101,7 @@ MonoBehaviour:
   minimapPos: {fileID: 3396624252308251666}
   searchingRegion: {fileID: 2585719377766739587}
   overHead: {fileID: 4974209190265384006}
+  key: {fileID: 11400000, guid: 2b8f270d3f6597146b6d33a445c536ab, type: 2}
   target: {fileID: 0}
   curTarget: {fileID: 0}
   blood: {fileID: 7403488021651589732, guid: 88c202515c7e0da49b563a46128f498a, type: 3}

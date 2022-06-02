@@ -60,6 +60,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     public SearchingRegion searchingRegion;
     public Transform overHead;
     private GameObject emotion;
+    public Key key;
 
     [Header("Extern Object")]
     public GameObject target;
@@ -123,7 +124,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     {
         if (enemyState == EnemyState.Death)
             return;
-        if (Input.GetKeyDown(KeyCode.T))
+        if (Input.GetKeyDown(key.T))
         {
             searchingRegion.enabled = !searchingRegion.enabled;
             if(searchingRegion.enabled == false)
@@ -486,6 +487,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                 isShoot = false;
                 searchingRegion.enabled = false;
                 searchingRegion.ClearMesh();
+                minimapPos.SetActive(false);
                 this.GetComponent<Collider>().enabled = false;
                 this.enemyState = EnemyState.Death;
                 SoundManager.Instance.PlaySound(transform.position, "EnemyDeath", 1.0f, true, 1.0f, 0.1f);

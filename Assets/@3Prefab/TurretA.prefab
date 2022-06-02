@@ -674,6 +674,7 @@ MonoBehaviour:
   headTrans: {fileID: 2309588738709333339}
   minimapPos: {fileID: 2309588740168901756}
   searchingRegion: {fileID: 3254524636820512748}
+  key: {fileID: 11400000, guid: 2b8f270d3f6597146b6d33a445c536ab, type: 2}
   target: {fileID: 0}
   curTarget: {fileID: 0}
   blood: {fileID: 7403488021651589732, guid: 88c202515c7e0da49b563a46128f498a, type: 3}

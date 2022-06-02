@@ -3,7 +3,23 @@ guid: 6d430f38ea842ed489ffd58a069a7d02
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - turretData: {instanceID: 0}
+  - curLocation: {instanceID: 0}
+  - agent: {instanceID: 0}
+  - animator: {instanceID: 0}
+  - gunTrans: {instanceID: 0}
+  - bodyTrans: {instanceID: 0}
+  - eyeTrans: {instanceID: 0}
+  - headTrans: {instanceID: 0}
+  - minimapPos: {instanceID: 0}
+  - searchingRegion: {instanceID: 0}
+  - key: {fileID: 11400000, guid: 2b8f270d3f6597146b6d33a445c536ab, type: 2}
+  - target: {instanceID: 0}
+  - curTarget: {instanceID: 0}
+  - blood: {instanceID: 0}
+  - muzzle: {instanceID: 0}
+  - lightning: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

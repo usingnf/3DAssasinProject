@@ -416,19 +416,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8deb83b44985944f8ae83d97069d668, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 44393876442963949}
   followSpeed: 10
   sensitivity: 100
   clampAngleUp: 20
   clampAngleDown: 30
-  trans: {fileID: 44393876442963949}
-  cameraPos: {fileID: 510893042727940749}
   dir: {x: 0, y: 0, z: 0}
   finalDir: {x: 0, y: 0, z: 0}
   minDistance: 1.2
   maxDistance: 3.1
   finalDistance: 3
   smoothness: 10
+  target: {fileID: 44393876442963949}
+  trans: {fileID: 44393876442963949}
+  cameraPos: {fileID: 510893042727940749}
 --- !u!1 &510893042727940750
 GameObject:
   m_ObjectHideFlags: 0
@@ -734,6 +734,7 @@ MonoBehaviour:
   leftFoot: {fileID: 5289112634491587853}
   rightFoot: {fileID: 2962909995230620431}
   bodyTrans: {fileID: 3214893760771804487}
+  key: {fileID: 11400000, guid: 2b8f270d3f6597146b6d33a445c536ab, type: 2}
   knifeTrans: {fileID: 510893041686098031}
   attackPoint: {fileID: 510893040930182868}
   blood: {fileID: 7403488021651589732, guid: 88c202515c7e0da49b563a46128f498a, type: 3}

@@ -452,6 +452,7 @@ MonoBehaviour:
   minimapPos: {fileID: 5105584937207857465}
   searchingRegion: {fileID: 605981620906032487}
   overHead: {fileID: 2962050557244102999}
+  key: {fileID: 11400000, guid: 2b8f270d3f6597146b6d33a445c536ab, type: 2}
   target: {fileID: 0}
   curTarget: {fileID: 0}
   blood: {fileID: 7403488021651589732, guid: 88c202515c7e0da49b563a46128f498a, type: 3}
@@ -559,6 +560,9 @@ MonoBehaviour:
   filter: {fileID: 9055858982327128147}
   Player: {fileID: 0}
   visibleTargets: []
+  greenMaterial: {fileID: 0}
+  orangeMaterial: {fileID: 0}
+  redMaterial: {fileID: 0}
 --- !u!1 &8378318826172377502
 GameObject:
   m_ObjectHideFlags: 0
