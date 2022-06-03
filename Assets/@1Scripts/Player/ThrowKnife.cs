@@ -8,9 +8,11 @@ public class ThrowKnife : MonoBehaviour
     private bool isThrow = true;
     private Vector3 pos;
     private Transform colTrans;
+    public float damage = 0.0f;
     [Header("Extern Object")]
     private Player player;
-    public GameObject blood;
+    [SerializeField]
+    private GameObject blood;
 
     //바라보는 방향으로 날아감. 충돌시 위치 고정.
     void Update()
@@ -47,7 +49,7 @@ public class ThrowKnife : MonoBehaviour
                 GameObject bloodObj = Instantiate(blood, transform.position, Quaternion.LookRotation(transform.position - obj.transform.position));
                 Destroy(bloodObj, 3.0f);
             }
-            obj.GetComponent<IDamagable>().Damaged(5);
+            obj.GetComponent<IDamagable>().Damaged(damage);
             Destroy(this.gameObject, 0.2f);
         }
         else if (obj.layer == LayerMask.NameToLayer("Wall") ||

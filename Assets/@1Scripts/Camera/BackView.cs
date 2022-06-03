@@ -13,8 +13,7 @@ public class BackView : MonoBehaviour
     public float clampAngleDown = 30f;
     private float rotX;
     private float rotY;
-    public Vector3 dir;
-    public Vector3 finalDir;
+    private Vector3 finalDir;
     public float minDistance;
     public float maxDistance;
     public float finalDistance;
@@ -22,7 +21,7 @@ public class BackView : MonoBehaviour
 
     [Header("Internal Object")]
     public Transform target;
-    public Transform trans;
+    private Transform trans;
     public Transform cameraPos;
 
     [Header("Extern Object")]
@@ -33,11 +32,11 @@ public class BackView : MonoBehaviour
         rotX = transform.localRotation.eulerAngles.x;
         rotY = transform.localRotation.eulerAngles.y;
 
-        dir = trans.localPosition.normalized;
+        trans = target.GetComponent<Transform>();
+        player = target.GetComponent<Player>();
         finalDistance = trans.localPosition.magnitude;
 
         Cursor.lockState = CursorLockMode.Locked;
-        player = target.GetComponent<Player>();
         //Cursor.visible = false;
     }
 

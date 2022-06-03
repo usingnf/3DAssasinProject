@@ -18,9 +18,12 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public GameState gameState;
-    public GameObject finishPanel;
-    public GameObject pausePanel;
-    public GameObject failedPanel;
+    [SerializeField]
+    private GameObject finishPanel;
+    [SerializeField]
+    private GameObject pausePanel;
+    [SerializeField]
+    private GameObject failedPanel;
     public int stage = 0;
     
     void Awake()
@@ -55,6 +58,10 @@ public class GameManager : MonoBehaviour
         finishPanel.SetActive(true);
         Time.timeScale = 0.0f;
         gameState = GameState.Finish;
+        if(stage >= PlayerPrefs.GetInt("MaxStage"))
+        {
+            PlayerPrefs.SetInt("MaxStage", stage + 1);
+        }
         MessageManager.Instance.CreateMessage("스테이지 클리어");
     }
 
@@ -72,7 +79,8 @@ public class GameManager : MonoBehaviour
     {
         Time.timeScale = 1.0f;
         stage++;
-        if(SceneManager.GetSceneByName("Stage" + stage.ToString()) == null)
+        PlayerPrefs.SetInt("Stage", stage);
+        if (SceneManager.GetSceneByName("Stage" + stage.ToString()).IsValid() == false)
         {
             Exit();
             return;

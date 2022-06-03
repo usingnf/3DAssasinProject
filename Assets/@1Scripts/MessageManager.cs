@@ -8,11 +8,17 @@ public class MessageManager : MonoBehaviour
 {
     //Singleton
     public static MessageManager Instance { get; private set; }
-    public Canvas canvas;
-    public Transform viewPort;
-    public GameObject messageForm;
-    public int count = 0;
+    [SerializeField]
+    private Canvas canvas;
+    [SerializeField]
+    private Transform viewPort;
+    [SerializeField]
+    private GameObject messageForm; //message prefab
+    [SerializeField]
+    private int count = 0;
     private int maxCount = 10; // 최대 메세지 개수
+    [SerializeField]
+    private Key key;
     void Awake()
     {
         Instance = this;
@@ -20,7 +26,7 @@ public class MessageManager : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.I))
+        if(Input.GetKeyDown(key.T))
         {
             canvas.enabled = !canvas.enabled;
         }

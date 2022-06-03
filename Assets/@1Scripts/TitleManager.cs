@@ -6,17 +6,29 @@ using UnityEngine.UI;
 
 public class TitleManager : MonoBehaviour
 {
-    public GameObject titlePanel;
-    public GameObject stageUI;
-    public GameObject stageConent;
-    public GameObject optionUI;
-    public GameObject keyOptionUI;
-    public List<Text> keyOptionText;
-    public Slider SESlider;
-    public Slider MusicSlider;
-    public Button stageButton;
-    public bool isChangeKey = false;
-    public Key key;
+    [SerializeField]
+    private GameObject titlePanel;
+    [SerializeField]
+    private GameObject stageUI;
+    [SerializeField]
+    private GameObject stageConent;
+    [SerializeField]
+    private GameObject optionUI;
+    [SerializeField]
+    private GameObject keyOptionUI;
+    [SerializeField]
+    private List<Text> keyOptionText;
+    [SerializeField]
+    private List<Button> keyOptionButton;
+    [SerializeField]
+    private Slider SESlider;
+    [SerializeField]
+    private Slider MusicSlider;
+    [SerializeField]
+    private Button stageButton;
+    private bool isChangeKey = false;
+    [SerializeField]
+    private Key key;
     private int keyType = 0;
     
     void Start()
@@ -65,87 +77,7 @@ public class TitleManager : MonoBehaviour
         }
     }
 
-    public void SetKeyText()
-    {
-        keyOptionText[0].text = key.W.ToString();
-        keyOptionText[1].text = key.A.ToString();
-        keyOptionText[2].text = key.S.ToString();
-        keyOptionText[3].text = key.D.ToString();
-        keyOptionText[4].text = key.Space.ToString();
-        keyOptionText[5].text = key.Q.ToString();
-        keyOptionText[6].text = key.E.ToString();
-        keyOptionText[7].text = key.C.ToString();
-        keyOptionText[8].text = key.T.ToString();
-        keyOptionText[9].text = key.Shift.ToString();
-    }
-
-    public void KeyOptionOpen()
-    {
-        titlePanel.SetActive(false);
-        keyOptionUI.SetActive(true);
-        SetKeyText();
-    }
-
-    public void KeyOptionClose()
-    {
-        titlePanel.SetActive(true);
-        keyOptionUI.SetActive(false);
-        isChangeKey = false;
-    }
-
-    public void SetKeyReady(int type)
-    {
-        isChangeKey = true;
-        keyType = type;
-    }
-
-    public void SetKey(int type, KeyCode setKey)
-    {
-        if ((int)setKey >= 343 && (int)setKey <= 345)
-            return; //Mouse Click Exception
-        if (key.W == setKey)
-            return;
-        if (key.A == setKey)
-            return;
-        if (key.S == setKey)
-            return;
-        if (key.D == setKey)
-            return;
-        if (key.Space == setKey)
-            return;
-        if (key.Q == setKey)
-            return;
-        if (key.E == setKey)
-            return;
-        if (key.C == setKey)
-            return;
-        if (key.T == setKey)
-            return;
-        if (key.Shift == setKey)
-            return;
-        if (type == 1)
-            key.W = setKey;
-        else if (type == 2)
-            key.A = setKey;
-        else if (type == 3)
-            key.S = setKey;
-        else if (type == 4)
-            key.D = setKey;
-        else if (type == 5)
-            key.Space = setKey;
-        else if (type == 6)
-            key.Q = setKey;
-        else if (type == 7)
-            key.E = setKey;
-        else if (type == 8)
-            key.C = setKey;
-        else if (type == 9)
-            key.T = setKey;
-        else if (type == 10)
-            key.Shift = setKey;
-        
-        SetKeyText();
-    }
+    
 
     public void StartButton()
     {
@@ -186,5 +118,119 @@ public class TitleManager : MonoBehaviour
 #else
         Application.Quit(); // 어플리케이션 종료
 #endif
+    }
+
+    public void SetKeyText()
+    {
+        keyOptionText[0].text = key.W.ToString();
+        keyOptionText[1].text = key.A.ToString();
+        keyOptionText[2].text = key.S.ToString();
+        keyOptionText[3].text = key.D.ToString();
+        keyOptionText[4].text = key.Space.ToString();
+        keyOptionText[5].text = key.Q.ToString();
+        keyOptionText[6].text = key.E.ToString();
+        keyOptionText[7].text = key.C.ToString();
+        keyOptionText[8].text = key.T.ToString();
+        keyOptionText[9].text = key.Shift.ToString();
+
+        foreach (Button button in keyOptionButton)
+        {
+            button.interactable = true;
+        }
+    }
+
+    public void KeyOptionOpen()
+    {
+        titlePanel.SetActive(false);
+        keyOptionUI.SetActive(true);
+        SetKeyText();
+    }
+
+    public void KeyOptionClose()
+    {
+        titlePanel.SetActive(true);
+        keyOptionUI.SetActive(false);
+        isChangeKey = false;
+    }
+
+    public void SetKeyReady(int type)
+    {
+        isChangeKey = !isChangeKey;
+        keyType = type;
+        if (isChangeKey)
+        {
+            SetKeyButtonActive(false);
+            keyOptionButton[type - 1].interactable = true;
+        }
+        else
+        {
+            SetKeyButtonActive(true);
+        }
+    }
+
+    public void SetKeyButtonActive(bool isActive)
+    {
+        foreach (Button button in keyOptionButton)
+        {
+            button.interactable = isActive;
+        }
+    }
+
+    public void SetKey(int type, KeyCode setKey)
+    {
+        SetKeyButtonActive(true);
+        if ((int)setKey >= 343 && (int)setKey <= 345)
+        {
+            return; //Mouse Click Exception
+        }
+
+        if (setKey == KeyCode.Escape)
+        {
+            isChangeKey = false;
+            return;
+        }
+
+        if (key.W == setKey)
+            return;
+        if (key.A == setKey)
+            return;
+        if (key.S == setKey)
+            return;
+        if (key.D == setKey)
+            return;
+        if (key.Space == setKey)
+            return;
+        if (key.Q == setKey)
+            return;
+        if (key.E == setKey)
+            return;
+        if (key.C == setKey)
+            return;
+        if (key.T == setKey)
+            return;
+        if (key.Shift == setKey)
+            return;
+        if (type == 1)
+            key.W = setKey;
+        else if (type == 2)
+            key.A = setKey;
+        else if (type == 3)
+            key.S = setKey;
+        else if (type == 4)
+            key.D = setKey;
+        else if (type == 5)
+            key.Space = setKey;
+        else if (type == 6)
+            key.Q = setKey;
+        else if (type == 7)
+            key.E = setKey;
+        else if (type == 8)
+            key.C = setKey;
+        else if (type == 9)
+            key.T = setKey;
+        else if (type == 10)
+            key.Shift = setKey;
+
+        SetKeyText();
     }
 }

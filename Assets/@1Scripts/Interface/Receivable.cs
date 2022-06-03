@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface Receiveable
+public interface Receivable
 {
     void ReceiveAction(Vector3 position);
 }

@@ -6,7 +6,8 @@ using UnityEngine;
 public class Door : MonoBehaviour, IOpen
 {
     private float startAngle = 0;
-    public Transform door;
+    [SerializeField]
+    private Transform door;
     private IEnumerator excuteCoroutine = null;
 
     // Start is called before the first frame update

@@ -19,7 +19,7 @@ public enum EnemyState
     Return, //귀환중
     Noise, //소리감지
 }
-public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
+public class Enemy : SoundReceiver, IDamagable, Receivable, IViewMinimap
 {
     [Header("Status")]
     public SwatStatus swatData;
@@ -28,46 +28,61 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     private float attackDistance = 7.0f;
     private float audioDistance = 13.0f;
     private bool isAim = false;
-    private bool isAttack = false;
     private bool isShoot = false;
     private bool isDead = false;
     private Vector3 startPos;
     private Vector3 lastDetectPos;
     private Quaternion startAngle;
-    public EnemyState startState;
-    public EnemyState enemyState = EnemyState.None;
+    [SerializeField]
+    private EnemyState startState;
+    [SerializeField]
+    private EnemyState enemyState = EnemyState.None;
     private float lastFindTime = 0.0f;
     private float lostDelayTime = 1.0f;
     private float lastReturnTime = 0.0f;
     private float returnDelayTime = 3.0f;
     private float lastScoutTime = 0.0f;
     private float scoutDelayTime = 5.0f;
-    public float hp = 1.0f;
+    [SerializeField]
+    private float hp = 1.0f;
     private float speed = 1.2f;
     private float damage = 50.0f;
     private bool isDetected = false;
     public List<GameObject> location = new List<GameObject>();
-    public GameObject curLocation = null;
+    [SerializeField]
+    private GameObject curLocation = null;
     private List<GameObject> tracePoint = new List<GameObject>();
 
     [Header("Internal Object")]
-    public NavMeshAgent agent;
-    public Animator animator;
-    public Transform eyeTrans;
-    public Transform gunTrans;
-    public Transform bodyTrans;
-    public GameObject minimapPos;
-    public SearchingRegion searchingRegion;
-    public Transform overHead;
+    [SerializeField]
+    private NavMeshAgent agent;
+    [SerializeField]
+    private Animator animator;
+    [SerializeField]
+    private Transform eyeTrans;
+    [SerializeField]
+    private Transform gunTrans;
+    [SerializeField]
+    private Transform bodyTrans;
+    [SerializeField]
+    private GameObject minimapPos;
+    [SerializeField]
+    private SearchingRegion searchingRegion;
+    [SerializeField]
+    private Transform overHead;
     private GameObject emotion;
-    public Key key;
+    [SerializeField]
+    private Key key;
 
     [Header("Extern Object")]
     public GameObject target;
     public GameObject curTarget;
-    public GameObject blood;
-    public GameObject muzzle;
-    public GameObject bloodPool;
+    [SerializeField]
+    private GameObject blood;
+    [SerializeField]
+    private GameObject muzzle;
+    [SerializeField]
+    private GameObject bloodPool;
 
     void Start()
     {
@@ -483,7 +498,6 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
                 animator.Play("Death");
                 this.isDead = true;
                 isAim = false;
-                isAttack = false;
                 isShoot = false;
                 searchingRegion.enabled = false;
                 searchingRegion.ClearMesh();
@@ -563,7 +577,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     }
 
     //Raycast와 충돌을 활용한 발자국 추적
-    public IEnumerator CheckTracePoint(GameObject obj)
+    private IEnumerator CheckTracePoint(GameObject obj)
     {
         while(obj != null)
         {
@@ -618,7 +632,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     }
 
     //Raycast와 충돌을 통한 나이프 추적
-    public IEnumerator KnifeDetect(GameObject obj)
+    private IEnumerator KnifeDetect(GameObject obj)
     {
         while(obj != null)
         {
@@ -663,7 +677,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     }
 
     //일정 시간동안 미니맵에 자신의 위치를 표기
-    public IEnumerator ViewMinimapLoop(float time)
+    private IEnumerator ViewMinimapLoop(float time)
     {
         isDetected = true;
         minimapPos.SetActive(true);
@@ -679,7 +693,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     }
 
     //사망시 피웅덩이 생성
-    public void CreateBloodPool(float time)
+    private void CreateBloodPool(float time)
     {
         Vector3 vec = bodyTrans.position;
         vec.y = transform.position.y;
@@ -688,7 +702,7 @@ public class Enemy : SoundReceiver, IDamagable, Receiveable, IViewMinimap
     }
 
     //감정 표현
-    public void CreateEmotion(string text, float time, Color color)
+    private void CreateEmotion(string text, float time, Color color)
     {
         if(emotion != null)
             Destroy(emotion);

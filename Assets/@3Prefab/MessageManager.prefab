@@ -133,6 +133,7 @@ MonoBehaviour:
   messageForm: {fileID: 8117025295822198051, guid: 3f16d05305e16fc43ab1d6b9d5d8dc7f,
     type: 3}
   count: 0
+  key: {fileID: 11400000, guid: 2b8f270d3f6597146b6d33a445c536ab, type: 2}
 --- !u!1 &6809698992111835649
 GameObject:
   m_ObjectHideFlags: 0

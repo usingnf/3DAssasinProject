@@ -9,18 +9,19 @@ public class Player : MonoBehaviour, IDamagable
     public int stand = 0; //0 == stand, 1 == Sit
     public int walk = 0;
     public int angle = 0;
-    public bool isGravity = true;
     private float gravity = -9.0f;
     public float jumpPower = 0.0f;
     public bool isAttack = false;
-    public float hp = 1;
+    [SerializeField]
+    private float hp = 1;
     public bool isDead = false;
     public bool isGround = true;
-    public float fallingIntensity = 0.0f;
+    private float fallingIntensity = 0.0f;
     public float speed = 2.0f;
-    public float stamina = 0.0f;
+    private float stamina = 0.0f;
     private float damage = 5.0f;
-    public float throwDamage = 5.0f;
+    [SerializeField]
+    private float throwDamage = 5.0f;
     private readonly float maxKnifeCool = 5.0f;
     private float knifeCool = 0.0f;
     public bool isInvisible = false;
@@ -28,7 +29,7 @@ public class Player : MonoBehaviour, IDamagable
     private float invisibleStaminaMinimum = 15.0f;
     public bool isClimb = false;
     public bool isDoor = false;
-    public float bloodFootTime = 0;
+    private float bloodFootTime = 0;
 
     private IEnumerator jumpReady = null;
     private IEnumerator standUpReady = null;
@@ -37,41 +38,69 @@ public class Player : MonoBehaviour, IDamagable
     private IEnumerator invisibleCoroutine = null;
 
     [Header("Internal Object")]
-    public Transform eyeTrans;
+    [SerializeField]
+    private Transform eyeTrans;
     private Transform trans;
     private Animator animator;
-    public CharacterController characterController;
-    public Transform leftHand;
-    public Transform jumpChecker;
+    [SerializeField]
+    private CharacterController characterController;
+    [SerializeField]
+    private Transform leftHand;
+    [SerializeField]
+    private Transform jumpChecker;
     public GameObject throwKnife = null;
     private List<Collider> detectCollider = new List<Collider>();
-    public Renderer bodyRenderer;
-    public Renderer clothesRenderer;
-    public Renderer eyesRenderer;
-    public Renderer eyeslashesRenderer;
-    public Renderer knifeRenderer;
-    public Transform leftFoot;
-    public Transform rightFoot;
-    public Transform bodyTrans;
-    public Key key;
+    [SerializeField]
+    private Renderer bodyRenderer;
+    [SerializeField]
+    private Renderer clothesRenderer;
+    [SerializeField]
+    private Renderer eyesRenderer;
+    [SerializeField]
+    private Renderer eyeslashesRenderer;
+    [SerializeField]
+    private Renderer knifeRenderer;
+    [SerializeField]
+    private Transform leftFoot;
+    [SerializeField]
+    private Transform rightFoot;
+    [SerializeField]
+    private Transform bodyTrans;
+    [SerializeField]
+    private Key key;
 
     [Header("Extern Object")]
-    public Transform knifeTrans;
-    public Transform attackPoint;
-    public GameObject blood;
-    public GameObject detectLine;
-    public GameObject footPrint;
-    public GameObject throwKnifePrefab = null;
-    public Transform cameraTrans;
-    public Transform cameraPosTrans;
+    [SerializeField]
+    private Transform knifeTrans;
+    [SerializeField]
+    private Transform attackPoint;
+    [SerializeField]
+    private GameObject blood;
+    [SerializeField]
+    private GameObject detectLine;
+    [SerializeField]
+    private GameObject footPrint;
+    [SerializeField]
+    private GameObject throwKnifePrefab = null;
+    [SerializeField]
+    private Transform cameraTrans;
+    [SerializeField]
+    private Transform cameraPosTrans;
     private Transform doorTrans = null;
-    public Material cloakingMaterialOrigin;
-    public Material cloakingMaterial;
-    public Material originClothesMaterial;
-    public Material originBodyMaterial;
-    public Material originKnifeMaterial;
-    public GameObject bloodSmallPool;
-    public GameObject bloodPool;
+    [SerializeField]
+    private Material cloakingMaterialOrigin;
+    [SerializeField]
+    private Material cloakingMaterial;
+    [SerializeField]
+    private Material originClothesMaterial;
+    [SerializeField]
+    private Material originBodyMaterial;
+    [SerializeField]
+    private Material originKnifeMaterial;
+    [SerializeField]
+    private GameObject bloodSmallPool;
+    [SerializeField]
+    private GameObject bloodPool;
 
     [Header("Event")]
     public UnityAction<float> hpEvent;
@@ -116,6 +145,11 @@ public class Player : MonoBehaviour, IDamagable
             return;
         if (isDead == true)
             return;
+        if (isClimb == true)
+            return;
+        if (characterController.isGrounded == false)
+            return;
+        
 
         if (Input.GetKeyDown(key.Space))
         {
@@ -398,7 +432,7 @@ public class Player : MonoBehaviour, IDamagable
             }
         }
     }
-
+    
     //이동
     private void Move()
     {
@@ -507,7 +541,7 @@ public class Player : MonoBehaviour, IDamagable
     {
         if (Input.GetKeyDown(key.Q))
         {
-            Detecting(10.0f);
+            Detecting(15.0f);
         }
     }
     private void Detecting(float range)
@@ -700,6 +734,7 @@ public class Player : MonoBehaviour, IDamagable
         throwKnife = Instantiate(throwKnifePrefab, leftHand.position, Quaternion.identity, leftHand);
         throwKnife.transform.localPosition = new Vector3(-0.173f, 0.012f, 0.037f);
         throwKnife.transform.localRotation = Quaternion.Euler(0, 45, 0f);
+        throwKnife.GetComponent<ThrowKnife>().damage = throwDamage;
     }
 
     //Animation Event에서 사용
@@ -886,7 +921,7 @@ public class Player : MonoBehaviour, IDamagable
     }
 
     //사망시 피 웅덩이 생성
-    public void CreateBloodPool(float time)
+    private void CreateBloodPool(float time)
     {
         Vector3 vec = bodyTrans.position;
         vec.y = transform.position.y;

@@ -18495,6 +18495,17 @@ MonoBehaviour:
   - {fileID: 633160218}
   - {fileID: 67036806}
   - {fileID: 1321509812}
+  keyOptionButton:
+  - {fileID: 7737582966290378282}
+  - {fileID: 1479710576}
+  - {fileID: 1753520364}
+  - {fileID: 1344944799}
+  - {fileID: 2126661437}
+  - {fileID: 855028777}
+  - {fileID: 1407955166}
+  - {fileID: 1121441570}
+  - {fileID: 752602320}
+  - {fileID: 591293723}
   SESlider: {fileID: 737123087}
   MusicSlider: {fileID: 1244333823}
   stageButton: {fileID: 4216126451364308265, guid: e53d3c221e2faac4faab1d2b967d166c,

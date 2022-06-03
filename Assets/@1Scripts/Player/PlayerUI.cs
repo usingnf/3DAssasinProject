@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class PlayerUI : MonoBehaviour
 {
     [Header("Internal Object")]
+    [SerializeField]
     public Slider hpSlider;
     public Slider staminaSlider;
     [Header("Extern Object")]

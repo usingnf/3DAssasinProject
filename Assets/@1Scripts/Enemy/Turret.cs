@@ -29,33 +29,45 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
     public TurretState turretState = TurretState.None;
     private float lastFindTime = 0.0f;
     private float lostDelayTime = 1.0f;
-    public float hp = 1.0f;
+    [SerializeField]
+    private float hp = 1.0f;
     private float lastAttackTime = 0.0f;
     private float attackDelayTime = 1.0f;
     private float lastTurnTime = 0.0f;
     private float turnDelayTime = 3.0f;
     private float damage = 50.0f;
-    private bool isDetected = false;
     public List<GameObject> location = new List<GameObject>();
     public GameObject curLocation = null;
 
     [Header("Internal Object")]
-    public NavMeshAgent agent;
-    public Animator animator;
-    public Transform gunTrans;
-    public Transform bodyTrans;
-    public Transform eyeTrans;
-    public Transform headTrans;
-    public GameObject minimapPos;
-    public SearchingRegion searchingRegion;
-    public Key key;
+    [SerializeField]
+    private NavMeshAgent agent;
+    [SerializeField]
+    private Animator animator;
+    [SerializeField]
+    private Transform gunTrans;
+    [SerializeField]
+    private Transform bodyTrans;
+    [SerializeField]
+    private Transform eyeTrans;
+    [SerializeField]
+    private Transform headTrans;
+    [SerializeField]
+    private GameObject minimapPos;
+    [SerializeField]
+    private SearchingRegion searchingRegion;
+    [SerializeField]
+    private Key key;
 
     [Header("Extern Object")]
     public GameObject target;
     public GameObject curTarget;
-    public GameObject blood;
-    public GameObject muzzle;
-    public GameObject lightning;
+    [SerializeField]
+    private GameObject blood;
+    [SerializeField]
+    private GameObject muzzle;
+    [SerializeField]
+    private GameObject lightning;
     
     void Start()
     {
@@ -273,11 +285,9 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
     //특정 상황에서 일정 시간동안 미니맵에 표기
     public IEnumerator ViewMinimapLoop(float time)
     {
-        isDetected = true;
         minimapPos.SetActive(true);
         yield return new WaitForSeconds(time);
         minimapPos.SetActive(false);
-        isDetected = false;
         yield return null;
     }
 

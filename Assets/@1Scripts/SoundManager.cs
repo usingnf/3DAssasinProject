@@ -7,8 +7,9 @@ public class SoundManager : MonoBehaviour
 {
     //Singleton
     public static SoundManager Instance { get; private set; }
-    public GameObject soundPrefab;
-    private List<GameObject> sounds = new List<GameObject>();
+    [SerializeField]
+    private GameObject soundPrefab;
+    private readonly List<GameObject> sounds = new List<GameObject>(); // Object Pooling
     private int sequence = 0;
     void Awake()
     {

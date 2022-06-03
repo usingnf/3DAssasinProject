@@ -16,7 +16,7 @@ public class SearchingRegion : MonoBehaviour
     [Range(0, 360)]
     public float viewAngle;
     public float offRadius;
-    [Range(0, 1)]
+    [Range(0.1f, 1)]
     public float meshResolution;
     public LayerMask targetMask;
     public LayerMask obstacleMask;
@@ -85,7 +85,6 @@ public class SearchingRegion : MonoBehaviour
             //mesh.RecalculateBounds();
             yield return new WaitForSeconds(0.02f);
         }
-        yield return null;
     }
 
     public void ClearMesh()
