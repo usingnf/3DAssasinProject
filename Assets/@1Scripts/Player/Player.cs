@@ -16,6 +16,8 @@ public class Player : MonoBehaviour, IDamagable
     private float hp = 1;
     public bool isDead = false;
     public bool isGround = true;
+    public bool isClimb = false;
+    public bool isDoor = false;
     private float fallingIntensity = 0.0f;
     public float speed = 2.0f;
     private float stamina = 0.0f;
@@ -27,8 +29,6 @@ public class Player : MonoBehaviour, IDamagable
     public bool isInvisible = false;
     private float invisibleStamina = 20.0f;
     private float invisibleStaminaMinimum = 15.0f;
-    public bool isClimb = false;
-    public bool isDoor = false;
     private float bloodFootTime = 0;
 
     private IEnumerator jumpReady = null;
@@ -127,19 +127,19 @@ public class Player : MonoBehaviour, IDamagable
         Jump(); // Space 점프
         DoorCheck(); // 문을 탐지 및 문 열기
         Attack(); // 좌클릭 공격
-        Throw(); // 우클릭 단검 던지기
+        ThrowKnife(); // 우클릭 단검 던지기
         CheckBlood(); // 피웅덩이를 밟은 상태인지 판단
     }
 
     //일정 시간이 지나면 피 삭제
-    public void CheckBlood()
+    private void CheckBlood()
     {
         if(bloodFootTime > 0)
             bloodFootTime -= Time.deltaTime;
     }
 
     //정면에 넘을 수 있는 벽이 있으면 넘음. Raycast 활용.
-    public void Climb()
+    private void Climb()
     {
         if (isAttack == true)
             return;
@@ -161,9 +161,9 @@ public class Player : MonoBehaviour, IDamagable
             }
         }
     }
-    
+
     //정면에 문이 있으면 문을 열거나 닫음. Interface와 Raycast활용
-    public void DoorCheck()
+    private void DoorCheck()
     {
         if (Input.GetMouseButton(1))
         {
@@ -265,7 +265,7 @@ public class Player : MonoBehaviour, IDamagable
     }
 
     //은신 시작
-    public void Invisible()
+    private void Invisible()
     {
         if(isInvisible == true)
         {
@@ -452,24 +452,17 @@ public class Player : MonoBehaviour, IDamagable
         if (isDead == true)
             return;
 
-        //Get Move Direction
+        //이동할 방향 구하기
         if (Input.GetKey(key.W))
-        {
             moveVec += trans.forward;
-        }
         if (Input.GetKey(key.A))
-        {
             moveVec += Quaternion.Euler(0, -90, 0) * trans.forward;
-        }
         if (Input.GetKey(key.S))
-        {
             moveVec += Quaternion.Euler(0, 180, 0) * trans.forward;
-        }
         if (Input.GetKey(key.D))
-        {
             moveVec += Quaternion.Euler(0, 90, 0) * trans.forward;
-        }
 
+        //이동 중인 방향 구하기
         float dirction = Mathf.Atan2(trans.forward.x, trans.forward.z) * Mathf.Rad2Deg;
         float moveDirection = Mathf.Atan2(characterController.velocity.x, characterController.velocity.z) * Mathf.Rad2Deg;
         float cos = Mathf.Cos((moveDirection - dirction) * Mathf.Deg2Rad);
@@ -532,7 +525,7 @@ public class Player : MonoBehaviour, IDamagable
         }
         else
         {
-            SetStamina(10.0f * Time.deltaTime, true);
+            SetStamina(20.0f * Time.deltaTime, true);
         }
     }
 
@@ -703,7 +696,7 @@ public class Player : MonoBehaviour, IDamagable
     }
 
     //원거리 단검 던지기
-    private void Throw()
+    private void ThrowKnife()
     {
         if (isAttack == true)
             return;

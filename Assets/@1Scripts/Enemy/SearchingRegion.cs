@@ -18,8 +18,8 @@ public class SearchingRegion : MonoBehaviour
     public float offRadius;
     [Range(0.1f, 1)]
     public float meshResolution;
-    public LayerMask targetMask;
-    public LayerMask obstacleMask;
+    public LayerMask targetMask; //사용x
+    public LayerMask obstacleMask; //사용x
 
     [Header("Internal Object")]
     public Transform eyeTrans;
@@ -132,7 +132,7 @@ public class SearchingRegion : MonoBehaviour
     }
 
     //해당 각도에 Raycast를 발사하여 최종 좌표 반환
-    public ViewCastInfo ViewCast(float globalAngle)
+    private ViewCastInfo ViewCast(float globalAngle)
     {
         Vector3 dir = DirFromAngle(globalAngle, true);
         RaycastHit hit;
@@ -149,7 +149,7 @@ public class SearchingRegion : MonoBehaviour
     }
 
     //각도를 벡터로 변환
-    public Vector3 DirFromAngle(float angleInDegrees, bool angleIsGlobal)
+    private Vector3 DirFromAngle(float angleInDegrees, bool angleIsGlobal)
     {
         if (!angleIsGlobal)
         {
@@ -177,7 +177,7 @@ public class SearchingRegion : MonoBehaviour
     }
 
 
-    // Raycast 발사 도중 적을 발견했을 경우 적 발견하는 방법. 사용하지 않고 Enemy에서 구현됨.
+    // Raycast 발사 도중 을 발견했을 경우 적 발견하는 방법. 사용하지 않고 Enemy에서 구현됨.
     IEnumerator FindTargetsWithDelay(float delay)
     {
         while (true)

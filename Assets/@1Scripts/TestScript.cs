@@ -7,21 +7,19 @@ public class TestScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Invoke("message", 5.0f);
+        MinimapCamera minimapCamera = GetComponentInChildren<MinimapCamera>();
+        Debug.Log(minimapCamera.gameObject);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.K))
-        {
-            Destroy(gameObject);
-        }
+        
     }
 
     private void message()
     {
-        Debug.Log("message");
+       
     }
 
 }

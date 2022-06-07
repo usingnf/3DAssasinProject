@@ -25,8 +25,10 @@ public class Turret : MonoBehaviour, IDamagable, IViewMinimap
     private Vector3 startPos;
     private Vector3 lastDetectPos;
     private Quaternion startAngle;
-    public TurretState startState;
-    public TurretState turretState = TurretState.None;
+    [SerializeField]
+    private TurretState startState;
+    [SerializeField]
+    private TurretState turretState = TurretState.None;
     private float lastFindTime = 0.0f;
     private float lostDelayTime = 1.0f;
     [SerializeField]

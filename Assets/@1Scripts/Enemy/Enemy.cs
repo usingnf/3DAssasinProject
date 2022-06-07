@@ -112,7 +112,7 @@ public class Enemy : SoundReceiver, IDamagable, Receivable, IViewMinimap
         State();
         AnimationSet();
         CheckEnemy();
-        TestMode();
+        ViewField();
     }
 
     //Animation의 통한 각도 설정값을 무시하기 위해 LateUpdate에서 상체의 각도를 강제 설정.
@@ -135,7 +135,7 @@ public class Enemy : SoundReceiver, IDamagable, Receivable, IViewMinimap
 
     
     //바닥에 Enemy의 시야각을 표기.
-    private void TestMode()
+    private void ViewField()
     {
         if (enemyState == EnemyState.Death)
             return;
@@ -249,12 +249,12 @@ public class Enemy : SoundReceiver, IDamagable, Receivable, IViewMinimap
             {
                 isAim = false;
             }
-            if (curTarget == null)
+            if (curTarget == null) // 적을 놓친 상태
             {
-                if (Vector3.Distance(transform.position, agent.destination) < 1.0f)
+                if (Vector3.Distance(transform.position, agent.destination) < 1.0f) // 목표 지점 도착
                 {
                     agent.SetDestination(transform.position);
-                    enemyState = EnemyState.Guard;
+                    enemyState = EnemyState.Guard; // 경계 태세
                 }
             }
             else
@@ -368,7 +368,8 @@ public class Enemy : SoundReceiver, IDamagable, Receivable, IViewMinimap
         //플레이어 방향으로 Raycast를 사용 및 장애물 여부 판단
         RaycastHit hit;        
         Vector3 rayVec = eyeTrans.position + ((target.transform.position - eyeTrans.position).normalized * viewDistance);
-        if (Physics.Linecast(eyeTrans.position, rayVec, out hit, LayerMask.GetMask("Player", "Wall", "Ground", "Door", "ClimbWall")))
+        if (Physics.Linecast(eyeTrans.position, rayVec, out hit, 
+            LayerMask.GetMask("Player", "Wall", "Ground", "Door", "ClimbWall")))
         {
             if(hit.collider != null)
             {
@@ -464,18 +465,20 @@ public class Enemy : SoundReceiver, IDamagable, Receivable, IViewMinimap
     {
         if (enemyState == EnemyState.Death)
             return;
-
+        // 총 타격 이펙트
         GameObject muzzleObj = Instantiate(muzzle, gunTrans);
         muzzle.GetComponent<ParticleSystem>().Play();
         Destroy(muzzleObj, 2.0f);
         SoundManager.Instance.PlaySound(this.transform.position, "GunFire3", 1.0f, true, 13.0f, 0.1f, 0.5f);
         if (Physics.Linecast(eyeTrans.position, target.transform.position, out RaycastHit hit, LayerMask.GetMask("Player", "Wall", "Ground")))
         {
+            // 공격 가능한 대상인지 판독
             IDamagable d = hit.transform.GetComponent<IDamagable>();
             if(d != null)
             {
-                if(d?.Damaged(damage) == true)
+                if(d?.Damaged(damage) == true) // 데미지를 실제로 받았는지 판단
                 {
+                    // 출혈 이펙트
                     GameObject obj = Instantiate(blood, hit.point, Quaternion.LookRotation(hit.point - gunTrans.position));
                     Destroy(obj, 3.0f);
                 }

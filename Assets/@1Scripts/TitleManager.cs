@@ -43,6 +43,11 @@ public class TitleManager : MonoBehaviour
         //스테이지 버튼 생성
         for (int i = 1; i <= 40; i++)
         {
+            int sceneNum = SceneUtility.GetBuildIndexByScenePath("Stage" + i.ToString());
+            if (sceneNum <= 0)
+            {
+                break;
+            }
             Button button = Instantiate(stageButton, stageConent.transform);
             button.transform.GetChild(0).GetComponent<Text>().text = i.ToString();
             int temp = i;
@@ -54,13 +59,13 @@ public class TitleManager : MonoBehaviour
             if(i > maxStage+1)
             {
                 button.interactable = false;
-
             }
         }
     }
 
     private void Update()
     {
+        //키 설정 변경
         if (isChangeKey)
         {
             if(Input.anyKeyDown)
@@ -74,6 +79,12 @@ public class TitleManager : MonoBehaviour
                     }
                 }
             }
+        }
+
+        //스테이지 리셋
+        if(Input.GetKeyDown(KeyCode.P))
+        {
+            PlayerPrefs.SetInt("MaxStage", 0);
         }
     }
 

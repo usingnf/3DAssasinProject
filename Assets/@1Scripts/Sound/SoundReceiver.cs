@@ -5,7 +5,7 @@ using UnityEngine;
 public class SoundReceiver : MonoBehaviour
 {
     public float soundThreshold = 0.0f;
-    Receivable receive = null;
+    private Receivable receive = null;
     private void Awake()
     {
         receive = GetComponent<Receivable>();

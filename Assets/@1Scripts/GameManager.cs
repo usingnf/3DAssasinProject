@@ -60,7 +60,7 @@ public class GameManager : MonoBehaviour
         gameState = GameState.Finish;
         if(stage >= PlayerPrefs.GetInt("MaxStage"))
         {
-            PlayerPrefs.SetInt("MaxStage", stage + 1);
+            PlayerPrefs.SetInt("MaxStage", stage);
         }
         MessageManager.Instance.CreateMessage("스테이지 클리어");
     }
@@ -80,7 +80,8 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1.0f;
         stage++;
         PlayerPrefs.SetInt("Stage", stage);
-        if (SceneManager.GetSceneByName("Stage" + stage.ToString()).IsValid() == false)
+        int sceneNum = SceneUtility.GetBuildIndexByScenePath("Stage" + stage.ToString());
+        if (sceneNum <= 0)
         {
             Exit();
             return;

@@ -18510,7 +18510,6 @@ MonoBehaviour:
   MusicSlider: {fileID: 1244333823}
   stageButton: {fileID: 4216126451364308265, guid: e53d3c221e2faac4faab1d2b967d166c,
     type: 3}
-  isChangeKey: 0
   key: {fileID: 11400000, guid: 2b8f270d3f6597146b6d33a445c536ab, type: 2}
 --- !u!1 &1490164564
 GameObject:
@@ -26022,7 +26021,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:

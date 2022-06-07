@@ -30,7 +30,8 @@ public class SoundManager : MonoBehaviour
 
     //소리 크기, 소리세기, 3D사운드 설정, Enemy 탐지 가능 소리 여부 설정
     //사운드 객체는 오브젝트 풀링 사용.
-    public void PlaySound(Vector3 vec, string sound, float volume = 1.0f, bool isDetecting = false, float intensity = 1.0f, float attenuation = 0.1f, float rate3D = 1.0f)
+    public void PlaySound(Vector3 vec, string sound, float volume = 1.0f, bool isDetecting = false, 
+        float intensity = 1.0f, float attenuation = 0.1f, float rate3D = 1.0f)
     {
         //GameObject obj = Instantiate(soundPrefab, vec, Quaternion.identity);
         //오브젝트 풀링
